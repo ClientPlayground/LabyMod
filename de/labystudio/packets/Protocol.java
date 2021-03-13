@@ -47,7 +47,7 @@ public class Protocol
         this.register(63, PacketPong.class, EnumConnectionState.ALL);
         this.register(64, PacketServerMessage.class, EnumConnectionState.ALL);
         this.register(65, PacketMessage.class, EnumConnectionState.ALL);
-        this.register(66, PacketBanned.class, EnumConnectionState.ALL);
+        this.register(66, PacketMessages.class, EnumConnectionState.ALL);
         this.register(67, PacketChatVisibilityChange.class, EnumConnectionState.ALL);
     }
 

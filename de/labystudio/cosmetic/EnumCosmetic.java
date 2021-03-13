@@ -11,5 +11,16 @@ public enum EnumCosmetic
     WITHER,
     HAT,
     TOOL,
-    HALO;
+    HALO,
+    TAG,
+    RABBIT,
+    PIXELBIESTER,
+    CENSORED,
+    RANK,
+    HALLOWEEN,
+    XMAS,
+    HEROBRINE,
+    CROWN,
+    CAP,
+    FLOWER;
 }

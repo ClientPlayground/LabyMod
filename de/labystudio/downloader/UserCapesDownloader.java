@@ -1,6 +1,7 @@
 package de.labystudio.downloader;
 
 import de.labystudio.labymod.LabyMod;
+import de.labystudio.utils.Debug;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -35,6 +36,7 @@ public class UserCapesDownloader
             httpurlconnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
             httpurlconnection.setRequestProperty("Cookie", "foo=bar");
             httpurlconnection.connect();
+            Debug.debug("[UserCapes] Response: " + httpurlconnection.getResponseCode());
             BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpurlconnection.getInputStream(), Charset.forName("UTF-8")));
             String s1 = "";
             String s;
@@ -52,12 +54,13 @@ public class UserCapesDownloader
                 arraylist.add(s2);
             }
 
-            System.out.println("[UserCapes] Total usercapes: " + arraylist.size());
+            Debug.debug("[UserCapes] Total usercapes: " + arraylist.size());
             LabyMod.getInstance().getCapeManager().setUserCapes(arraylist);
             return true;
         }
         catch (Exception exception)
         {
+            Debug.debug("[UserCapes] Error: " + exception.getMessage());
             exception.printStackTrace();
             return false;
         }

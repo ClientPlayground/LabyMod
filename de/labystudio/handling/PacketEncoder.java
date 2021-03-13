@@ -1,6 +1,5 @@
 package de.labystudio.handling;
 
-import de.labystudio.chat.Logger;
 import de.labystudio.packets.Packet;
 import de.labystudio.packets.PacketBuf;
 import de.labystudio.packets.Protocol;
@@ -16,9 +15,9 @@ public class PacketEncoder extends MessageToByteEncoder<Packet>
         PacketBuf packetbuf = new PacketBuf(byteBuf);
         int i = Protocol.getProtocol().getPacketId(packet);
 
-        if (i != 62 && i != 63 && Debug.chat())
+        if (i != 62 && i != 63)
         {
-            Logger.getLogger().info("[OUT] " + i + " " + packet.getClass().getSimpleName());
+            Debug.debug("[OUT] " + i + " " + packet.getClass().getSimpleName());
         }
 
         packetbuf.writeVarIntToBuffer(Protocol.getProtocol().getPacketId(packet));

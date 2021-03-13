@@ -127,7 +127,7 @@ public class GuiGames extends GuiMenuScreen
 
         if (this.selectedGame == EnumGame.None)
         {
-            this.draw.drawCenteredString(Color.cl("c") + L._("gui_games_nogames", new Object[0]), this.width / 2, this.height / 2);
+            this.draw.drawCenteredString(Color.cl("c") + L.f("gui_games_nogames", new Object[0]), this.width / 2, this.height / 2);
         }
 
         if (this.selectedGame == EnumGame.Snake)

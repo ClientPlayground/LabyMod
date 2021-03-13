@@ -91,7 +91,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
         int i = TeamSpeak.xSplit - 26;
         this.nickNameField = new ModGuiTextField(0, LabyMod.getInstance().mc.fontRendererObj, 0, 0, i, 9);
         this.nickNameField.setMaxStringLength(20);
-        this.connectButton = new GuiButton(1, this.width / 2 - 100, this.height / 2, L._("gui_ts_connect", new Object[0]));
+        this.connectButton = new GuiButton(1, this.width / 2 - 100, this.height / 2, L.f("gui_ts_connect", new Object[0]));
 
         if (TeamSpeakController.getInstance() != null)
         {
@@ -334,11 +334,11 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
             if (!TeamSpeakController.getInstance().serverIP.isEmpty() && TeamSpeakController.getInstance().serverPort != 0)
             {
-                this.draw.drawCenteredString(Color.cl("a") + L._("gui_ts_connectto", new Object[] {s}), this.width / 2, this.height / 2 - 15);
+                this.draw.drawCenteredString(Color.cl("a") + L.f("gui_ts_connectto", new Object[] {s}), this.width / 2, this.height / 2 - 15);
             }
             else
             {
-                this.draw.drawCenteredString(Color.cl("c") + L._("gui_ts_error_connect", new Object[0]), this.width / 2, this.height / 2 - 15);
+                this.draw.drawCenteredString(Color.cl("c") + L.f("gui_ts_error_connect", new Object[0]), this.width / 2, this.height / 2 - 15);
 
                 if (this.connectButton != null)
                 {
@@ -346,11 +346,11 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
                     if (!this.connectButton.enabled)
                     {
-                        this.connectButton.displayString = L._("gui_ts_connecting", new Object[0]);
+                        this.connectButton.displayString = L.f("gui_ts_connecting", new Object[0]);
                     }
                     else
                     {
-                        this.connectButton.displayString = L._("gui_ts_connect", new Object[0]);
+                        this.connectButton.displayString = L.f("gui_ts_connect", new Object[0]);
                     }
                 }
             }
@@ -445,8 +445,8 @@ public class GuiTeamSpeak extends GuiMenuScreen
                 this.connectButton.visible = false;
             }
 
-            this.draw.drawCenteredString(Color.cl("c") + L._("gui_ts_noserverfound", new Object[0]), this.width / 2, this.height / 2 - 15);
-            this.draw.drawCenteredString(Color.cl("7") + L._("gui_ts_tryrestart", new Object[0]), this.width / 2, this.height / 2 - 5);
+            this.draw.drawCenteredString(Color.cl("c") + L.f("gui_ts_noserverfound", new Object[0]), this.width / 2, this.height / 2 - 15);
+            this.draw.drawCenteredString(Color.cl("7") + L.f("gui_ts_tryrestart", new Object[0]), this.width / 2, this.height / 2 - 5);
             super.drawScreen(mouseX, mouseY, partialTicks);
         }
     }
@@ -645,7 +645,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
                         if (!arraylist.isEmpty())
                         {
-                            LabyMod.getInstance().openWebpage((String)arraylist.get(0));
+                            LabyMod.getInstance().openWebpage((String)arraylist.get(0), true);
                         }
                     }
                 }
@@ -864,7 +864,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
                 {
                     if (teamspeakchannel2.getIsPassword())
                     {
-                        TeamSpeak.overlayWindows.openInput(teamspeakchannel2.getChannelId(), L._("gui_ts_channelpassword_title", new Object[0]), L._("gui_ts_channelpassword_content", new Object[] {teamspeakchannel2.getChannelName()}), new PopUpCallback()
+                        TeamSpeak.overlayWindows.openInput(teamspeakchannel2.getChannelId(), L.f("gui_ts_channelpassword_title", new Object[0]), L.f("gui_ts_channelpassword_content", new Object[] {teamspeakchannel2.getChannelName()}), new PopUpCallback()
                         {
                             public void ok(int cid, String message)
                             {
@@ -957,11 +957,11 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
             int i = 30;
             int j = TeamSpeak.xSplit + 10;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_user_nickname", new Object[0]) + Color.cl("f") + ":", j, i);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_user_nickname", new Object[0]) + Color.cl("f") + ":", j, i);
             i = i + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_user_country", new Object[0]) + Color.cl("f") + ":", j, i);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_user_country", new Object[0]) + Color.cl("f") + ":", j, i);
             i = i + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_user_talkpower", new Object[0]) + Color.cl("f") + ":", j, i);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_user_talkpower", new Object[0]) + Color.cl("f") + ":", j, i);
             i = i + 12;
             i = 30;
             this.drawInfo(teamspeakuser.getNickName(), j + 70, i);
@@ -971,7 +971,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
             this.drawInfo("" + teamspeakuser.getTalkPower(), j + 70, i);
             i = i + 12;
             i = i + 10;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_user_servergroups", new Object[0]) + Color.cl("f") + ":", j, i);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_user_servergroups", new Object[0]) + Color.cl("f") + ":", j, i);
             i = i + 12;
 
             if (teamspeakuser.getServerGroups() == null)
@@ -999,7 +999,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
             }
 
             i = i + 10;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_user_channelgroups", new Object[0]) + Color.cl("f") + ":", j, i);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_user_channelgroups", new Object[0]) + Color.cl("f") + ":", j, i);
             i = i + 12;
             TeamSpeakChannelGroup teamspeakchannelgroup = TeamSpeakController.getInstance().getChannelGroup(teamspeakuser.getChannelGroupId());
 
@@ -1018,25 +1018,25 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
             if (!teamspeakuser.hasClientInputHardware())
             {
-                this.drawInfo(Color.cl("c") + L._("gui_ts_user_micoff", new Object[0]), j, i);
+                this.drawInfo(Color.cl("c") + L.f("gui_ts_user_micoff", new Object[0]), j, i);
                 i += 12;
             }
 
             if (teamspeakuser.hasClientInputMuted())
             {
-                this.drawInfo(Color.cl("c") + L._("gui_ts_user_micmute", new Object[0]), j, i);
+                this.drawInfo(Color.cl("c") + L.f("gui_ts_user_micmute", new Object[0]), j, i);
                 i += 12;
             }
 
             if (!teamspeakuser.hasClientOutputHardware())
             {
-                this.drawInfo(Color.cl("4") + L._("gui_ts_user_soundoff", new Object[0]), j, i);
+                this.drawInfo(Color.cl("4") + L.f("gui_ts_user_soundoff", new Object[0]), j, i);
                 i += 12;
             }
 
             if (teamspeakuser.hasClientOutputMuted())
             {
-                this.drawInfo(Color.cl("4") + L._("gui_ts_user_soundmute", new Object[0]), j, i);
+                this.drawInfo(Color.cl("4") + L.f("gui_ts_user_soundmute", new Object[0]), j, i);
                 i = i + 12;
             }
         }
@@ -1051,24 +1051,24 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
             int l = 30;
             int i1 = TeamSpeak.xSplit + 10;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_name", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_name", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
 
             if (teamspeakchannel != null && teamspeakchannel.getTopic() != null && !teamspeakchannel.getTopic().isEmpty())
             {
-                this.drawInfo(Color.cl("7") + L._("gui_ts_channel_topic", new Object[0]) + Color.cl("f") + ":", i1, l);
+                this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_topic", new Object[0]) + Color.cl("f") + ":", i1, l);
                 l += 12;
             }
 
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_codec", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_codec", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_codecquality", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_codecquality", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_type", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_type", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_currentclients", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_currentclients", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
-            this.drawInfo(Color.cl("7") + L._("gui_ts_channel_subscriptionsatus", new Object[0]) + Color.cl("f") + ":", i1, l);
+            this.drawInfo(Color.cl("7") + L.f("gui_ts_channel_subscriptionsatus", new Object[0]) + Color.cl("f") + ":", i1, l);
             l = l + 12;
             l = 30;
             i1 = i1 + 110;
@@ -1085,11 +1085,11 @@ public class GuiTeamSpeak extends GuiMenuScreen
             l = l + 12;
             this.drawInfo("" + teamspeakchannel.getChannelCodecQuality(), i1, l);
             l = l + 12;
-            this.drawInfo("" + TeamSpeak.status(teamspeakchannel.getIsPermanent(), L._("gui_ts_channel_permanent", new Object[0]) + " ", "") + TeamSpeak.status(teamspeakchannel.getIsSemiPermanent(), L._("gui_ts_channel_semipermanent", new Object[0]) + " ", "") + TeamSpeak.status(teamspeakchannel.getIsPassword(), L._("gui_ts_channel_password", new Object[0]), ""), i1, l);
+            this.drawInfo("" + TeamSpeak.status(teamspeakchannel.getIsPermanent(), L.f("gui_ts_channel_permanent", new Object[0]) + " ", "") + TeamSpeak.status(teamspeakchannel.getIsSemiPermanent(), L.f("gui_ts_channel_semipermanent", new Object[0]) + " ", "") + TeamSpeak.status(teamspeakchannel.getIsPassword(), L.f("gui_ts_channel_password", new Object[0]), ""), i1, l);
             l = l + 12;
             this.drawInfo("" + teamspeakchannel.getTotalClients() + "/" + (teamspeakchannel.getMaxClients() + "").replace("-1", "Unlimited"), i1, l);
             l = l + 12;
-            this.drawInfo("" + TeamSpeak.status(teamspeakchannel.getSubscription(), L._("gui_ts_channel_subscribed", new Object[0]), L._("gui_ts_channel_notsubscribed", new Object[0])), i1, l);
+            this.drawInfo("" + TeamSpeak.status(teamspeakchannel.getSubscription(), L.f("gui_ts_channel_subscribed", new Object[0]), L.f("gui_ts_channel_notsubscribed", new Object[0])), i1, l);
             l = l + 12;
         }
     }
@@ -1118,9 +1118,9 @@ public class GuiTeamSpeak extends GuiMenuScreen
                 {
                     int i1 = 0;
                     LabyMod.getInstance().draw.drawBox(i, j, k, l);
-                    this.boxSlot(L._("gui_ts_action_changenickname", new Object[0]), i, j, k, l, i1, mouseX, mouseY);
+                    this.boxSlot(L.f("gui_ts_action_changenickname", new Object[0]), i, j, k, l, i1, mouseX, mouseY);
                     i1 = i1 + 15;
-                    this.boxSlot(L._("gui_ts_action_channelcommander", new Object[0]), i, j, k, l, i1, mouseX, mouseY);
+                    this.boxSlot(L.f("gui_ts_action_channelcommander", new Object[0]), i, j, k, l, i1, mouseX, mouseY);
                     i1 = i1 + 15;
                     this.boxLengthX = 110;
                     this.boxLengthY = i1;
@@ -1129,11 +1129,11 @@ public class GuiTeamSpeak extends GuiMenuScreen
                 {
                     int j1 = 0;
                     LabyMod.getInstance().draw.drawBox(i, j, k, l);
-                    this.boxSlot(L._("gui_ts_action_opentextchat", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
+                    this.boxSlot(L.f("gui_ts_action_opentextchat", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
                     j1 = j1 + 15;
-                    this.boxSlot(L._("gui_ts_action_poke", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
+                    this.boxSlot(L.f("gui_ts_action_poke", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
                     j1 = j1 + 15;
-                    this.boxSlot(L._("gui_ts_action_movetoown", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
+                    this.boxSlot(L.f("gui_ts_action_movetoown", new Object[0]), i, j, k, l, j1, mouseX, mouseY);
                     j1 = j1 + 15;
                     this.boxLengthX = 145;
                     this.boxLengthY = j1;
@@ -1143,7 +1143,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
             {
                 int k1 = 0;
                 LabyMod.getInstance().draw.drawBox(i, j, k, l);
-                this.boxSlot(L._("gui_ts_action_switchchannel", new Object[0]), i, j, k, l, k1, mouseX, mouseY);
+                this.boxSlot(L.f("gui_ts_action_switchchannel", new Object[0]), i, j, k, l, k1, mouseX, mouseY);
                 k1 = k1 + 15;
                 this.boxLengthX = 100;
                 this.boxLengthY = k1;
@@ -1234,7 +1234,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
                         if (this.boxClick(i, j, k, l, j1, mouseX, mouseY))
                         {
-                            TeamSpeak.overlayWindows.openInput(TeamSpeak.selectedUser, L._("gui_ts_window_poke_title", new Object[0]), L._("gui_ts_window_poke_content", new Object[0]), new PopUpCallback()
+                            TeamSpeak.overlayWindows.openInput(TeamSpeak.selectedUser, L.f("gui_ts_window_poke_title", new Object[0]), L.f("gui_ts_window_poke_content", new Object[0]), new PopUpCallback()
                             {
                                 public void ok(int id, String message)
                                 {
@@ -1242,7 +1242,7 @@ public class GuiTeamSpeak extends GuiMenuScreen
 
                                     if (teamspeakuser == null)
                                     {
-                                        TeamSpeak.error(L._("gui_ts_window_poke_error_offline", new Object[0]));
+                                        TeamSpeak.error(L.f("gui_ts_window_poke_error_offline", new Object[0]));
                                     }
                                     else
                                     {

@@ -1,25 +1,20 @@
 package net.minecraft.client.gui;
 
-import de.labystudio.labymod.LabyMod;
-import de.labystudio.utils.Color;
-import de.labystudio.utils.DrawUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.main.GameConfiguration;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.ResourceLocation;
-import org.lwjgl.opengl.GL11;
 
 public class GuiButton extends Gui
 {
     protected static final ResourceLocation buttonTextures = new ResourceLocation("textures/gui/widgets.png");
 
     /** Button width in pixels */
-    public int width;
+    protected int width;
 
     /** Button height in pixels */
-    public int height;
+    protected int height;
 
     /** The x position of this control. */
     public int xPosition;
@@ -37,12 +32,6 @@ public class GuiButton extends Gui
     /** Hides the button completely if false. */
     public boolean visible;
     protected boolean hovered;
-    public boolean centered;
-    public String subTitle;
-    long showInfo;
-    public String info;
-    public String run;
-    public boolean noGui;
 
     public GuiButton(int buttonId, int x, int y, String buttonText)
     {
@@ -51,12 +40,6 @@ public class GuiButton extends Gui
 
     public GuiButton(int buttonId, int x, int y, int widthIn, int heightIn, String buttonText)
     {
-        this.centered = true;
-        this.subTitle = "";
-        this.showInfo = 0L;
-        this.info = "";
-        this.run = "";
-        this.noGui = false;
         this.width = 200;
         this.height = 20;
         this.enabled = true;
@@ -89,96 +72,6 @@ public class GuiButton extends Gui
         return i;
     }
 
-    public void drawInfoBox()
-    {
-        if (!this.hovered)
-        {
-            this.showInfo = System.currentTimeMillis();
-        }
-
-        if (!this.info.isEmpty())
-        {
-            if (this.showInfo + 300L <= System.currentTimeMillis())
-            {
-                int i = Integer.MIN_VALUE;
-                GL11.glPushMatrix();
-                double d0 = 0.7D;
-                GL11.glScaled(d0, d0, d0);
-
-                for (int j = 0; j < 3; ++j)
-                {
-                    DrawUtils drawutils = LabyMod.getInstance().draw;
-                    DrawUtils.drawRect((int)((double)(LabyMod.getInstance().draw.getWidth() / 2 - 140) / d0), (int)((double)(LabyMod.getInstance().draw.getHeight() - 30 - 10 * this.getRange(this.info, 300)) / d0), (int)((double)(LabyMod.getInstance().draw.getWidth() / 2 + 140) / d0), (int)((double)(LabyMod.getInstance().draw.getHeight() - 15) / d0), i);
-                }
-
-                this.drawContent(this.info, (int)((double)(LabyMod.getInstance().draw.getWidth() / 2) / d0), (int)((double)(LabyMod.getInstance().draw.getHeight() - 25 - 10 * this.getRange(this.info, 300)) / d0), 300);
-                GL11.glPopMatrix();
-            }
-        }
-    }
-
-    private void drawContent(String p_drawContent_1_, int p_drawContent_2_, int p_drawContent_3_, int p_drawContent_4_)
-    {
-        int i = this.getRange(p_drawContent_1_, p_drawContent_4_);
-        String s = this.getFirstStrings(p_drawContent_4_, p_drawContent_1_);
-        String s1 = "";
-
-        for (int j = 0; j <= i; ++j)
-        {
-            LabyMod.getInstance().draw.drawCenteredString(s, p_drawContent_2_, p_drawContent_3_ + j * 12);
-            s1 = s1 + s;
-            s = this.getFirstStrings(p_drawContent_4_, p_drawContent_1_.replace(s1, ""));
-        }
-    }
-
-    private String getFirstStrings(int p_getFirstStrings_1_, String p_getFirstStrings_2_)
-    {
-        int i = 0;
-        String s = "";
-
-        for (int j = 0; j < p_getFirstStrings_2_.length(); ++j)
-        {
-            char c0 = p_getFirstStrings_2_.charAt(j);
-            i += LabyMod.getInstance().draw.getStringWidth(new String(new char[] {c0}));
-
-            if (p_getFirstStrings_1_ <= i)
-            {
-                if (p_getFirstStrings_1_ == i)
-                {
-                    s = s + c0;
-                }
-
-                break;
-            }
-
-            s = s + new String(new char[] {c0});
-        }
-
-        return s;
-    }
-
-    private int getRange(String p_getRange_1_, int p_getRange_2_)
-    {
-        int i = 0;
-        int j = 0;
-        String s = p_getRange_1_;
-
-        for (int k = 0; k <= s.length() - 1; ++k)
-        {
-            char c0 = s.charAt(k);
-
-            if (i > p_getRange_2_)
-            {
-                ++j;
-                i = 0;
-            }
-
-            i += LabyMod.getInstance().draw.getStringWidth("" + c0);
-        }
-
-        return j;
-    }
-
     /**
      * Draws this button to the screen.
      */
@@ -194,13 +87,8 @@ public class GuiButton extends Gui
             GlStateManager.enableBlend();
             GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
             GlStateManager.blendFunc(770, 771);
-
-            if (!this.noGui)
-            {
-                this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
-                this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-            }
-
+            this.drawTexturedModalRect(this.xPosition, this.yPosition, 0, 46 + i * 20, this.width / 2, this.height);
+            this.drawTexturedModalRect(this.xPosition + this.width / 2, this.yPosition, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
             this.mouseDragged(mc, mouseX, mouseY);
             int j = 14737632;
 
@@ -213,15 +101,7 @@ public class GuiButton extends Gui
                 j = 16777120;
             }
 
-            if (this.centered)
-            {
-                this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
-            }
-            else
-            {
-                this.drawString(mc.fontRendererObj, Color.cl("f") + this.displayString, this.xPosition + 6, this.yPosition + (this.height - 8) / 2, 0);
-                this.drawCenteredString(fontrenderer, this.subTitle, this.xPosition + 40 + (this.xPosition + this.width / 2 - (this.xPosition + 30)) * 2 - this.subTitle.length(), this.yPosition + (this.height - 8) / 2, j);
-            }
+            this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, j);
         }
     }
 

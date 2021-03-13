@@ -1,29 +1,49 @@
 package net.minecraft.client.gui;
 
-import de.labystudio.gui.GuiCapeSettings;
+import de.labystudio.downloader.ModInfoDownloader;
+import de.labystudio.downloader.UserCapesDownloader;
+import de.labystudio.downloader.UserCosmeticsDownloader;
+import de.labystudio.gui.GuiCosmetics;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
+import de.labystudio.utils.SkinChanger;
 import java.io.IOException;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EnumPlayerModelParts;
 
 public class GuiCustomizeSkin extends GuiScreen
 {
+    public static long REFRESH_COOLDOWN = 0L;
     boolean advanced = false;
 
     /** The parent GUI for this GUI */
-    GuiButton parentScreen2;
+    GuiButton parentScreen;
     GuiButton optionsBackground;
     GuiButton statIcons;
     GuiButton icons;
     GuiButton zLevel;
 
+    /** The title of the GUI. */
+    GuiButton title;
+    GuiButton NEWLINE_SPLITTER;
+
+    /** The button that was just pressed. */
+    GuiButton selectedButton;
+    private GuiButton buttonRefresh;
+    boolean steveModel = true;
+    String output = "";
+    private float previewMouseClickX = 0.0F;
+    private float previewMouseClickY = 0.0F;
+    private float previewMouseDragX = 0.0F;
+    private float previewMouseDragY = 0.0F;
+
     /** The parent GUI for this GUI */
-    private final GuiScreen parentScreen;
+    private final GuiScreen parentScreen1;
 
     /** The title of the GUI. */
-    private String title;
+    private String title1;
     private static final String __OBFID = "CL_00001932";
 
     public void LabyMod()
@@ -58,13 +78,17 @@ public class GuiCustomizeSkin extends GuiScreen
         }
         else
         {
-            this.buttonList.add(this.parentScreen2 = new GuiButton(1, this.width / 2 + 40, this.height / 2 - 58, 80, 20, ""));
+            this.buttonList.add(this.parentScreen = new GuiButton(1, this.width / 2 + 40, this.height / 2 - 58, 80, 20, ""));
             this.buttonList.add(this.optionsBackground = new GuiButton(2, this.width / 2 + 40, this.height / 2 - 33, 80, 20, ""));
             this.buttonList.add(this.statIcons = new GuiButton(3, this.width / 2 + 40, this.height / 2 - 8, 80, 20, ""));
         }
 
         this.buttonList.add(this.icons = new GuiButton(40, this.width / 2 + 40, this.height / 2 + 17, 80, 20, ""));
-        this.buttonList.add(this.zLevel = new GuiButton(10, 2, 2, 80, 20, ""));
+        this.buttonList.add(this.zLevel = new GuiButton(10, 2, 2, 95, 20, ""));
+        this.buttonList.add(this.title = new GuiButton(11, 2, 2, 95, 20, ""));
+        this.buttonList.add(this.NEWLINE_SPLITTER = new GuiButton(12, this.width / 2 + 40, this.height / 2 + 42, 80, 20, ""));
+        this.buttonList.add(this.selectedButton = new GuiButton(13, this.width / 2 + 125, this.height / 2 + 42, 35, 20, ""));
+        this.buttonList.add(this.buttonRefresh = new GuiButton(5, 5, 3, 60, 20, REFRESH_COOLDOWN < System.currentTimeMillis() ? "Refresh" : "Cooldown.."));
         this.refreshButton();
     }
 
@@ -72,7 +96,7 @@ public class GuiCustomizeSkin extends GuiScreen
     {
         if (this.parentScreen != null)
         {
-            this.parentScreen2.displayString = this.getStatus("Hat", EnumPlayerModelParts.HAT);
+            this.parentScreen.displayString = this.getStatus("Hat", EnumPlayerModelParts.HAT);
             this.optionsBackground.displayString = this.getStatus("Jacket", EnumPlayerModelParts.JACKET);
             this.statIcons.displayString = this.getStatus("Pants", EnumPlayerModelParts.RIGHT_PANTS_LEG);
         }
@@ -87,6 +111,7 @@ public class GuiCustomizeSkin extends GuiScreen
             {
                 this.icons.displayString = "Simple..";
                 this.icons.yPosition = this.height / 2 + 55;
+                this.icons.xPosition = this.width / 2 + 51;
             }
         }
 
@@ -97,13 +122,41 @@ public class GuiCustomizeSkin extends GuiScreen
             if (this.advanced)
             {
                 this.zLevel.yPosition = this.height / 2 + 55;
-                this.zLevel.xPosition = this.width / 2 - 120;
+                this.zLevel.xPosition = this.width / 2 - 141;
             }
             else
             {
-                this.zLevel.yPosition = this.height / 2 + 43;
-                this.zLevel.xPosition = this.width / 2 + 40;
+                this.zLevel.yPosition = this.height / 2 + 75;
+                this.zLevel.xPosition = this.width / 2 + 5;
             }
+        }
+
+        if (this.title != null)
+        {
+            this.title.displayString = "Cosmetics";
+
+            if (this.advanced)
+            {
+                this.title.yPosition = this.height / 2 + 55;
+                this.title.xPosition = this.width / 2 - 45;
+            }
+            else
+            {
+                this.title.yPosition = this.height / 2 + 75;
+                this.title.xPosition = this.width / 2 - 100;
+            }
+        }
+
+        if (this.NEWLINE_SPLITTER != null)
+        {
+            this.NEWLINE_SPLITTER.displayString = "Change skin";
+            this.NEWLINE_SPLITTER.visible = !this.advanced;
+        }
+
+        if (this.selectedButton != null)
+        {
+            this.selectedButton.displayString = this.steveModel ? "Steve" : "Alex";
+            this.selectedButton.visible = !this.advanced;
         }
     }
 
@@ -125,7 +178,7 @@ public class GuiCustomizeSkin extends GuiScreen
 
     public GuiCustomizeSkin(GuiScreen parentScreenIn)
     {
-        this.parentScreen = parentScreenIn;
+        this.parentScreen1 = parentScreenIn;
     }
 
     /**
@@ -135,7 +188,7 @@ public class GuiCustomizeSkin extends GuiScreen
     public void initGui()
     {
         int i = 0;
-        this.title = I18n.format("options.skinCustomisation.title", new Object[0]);
+        this.title1 = I18n.format("options.skinCustomisation.title", new Object[0]);
         this.LabyMod();
 
         if (i % 2 == 1)
@@ -143,7 +196,7 @@ public class GuiCustomizeSkin extends GuiScreen
             ++i;
         }
 
-        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 2 + 90, I18n.format("gui.done", new Object[0])));
+        this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 2 + 97, I18n.format("gui.done", new Object[0])));
     }
 
     /**
@@ -175,6 +228,18 @@ public class GuiCustomizeSkin extends GuiScreen
                 }
             }
 
+            if (button.id == 5)
+            {
+                LabyMod.getInstance().getCapeManager().refresh();
+                LabyMod.getInstance().getCosmeticManager().getOfflineCosmetics().clear();
+                new ModInfoDownloader();
+                new UserCosmeticsDownloader();
+                new UserCapesDownloader();
+                REFRESH_COOLDOWN = System.currentTimeMillis() + 10000L;
+                button.enabled = false;
+                button.displayString = "Done!";
+            }
+
             if (button.id == 40)
             {
                 this.advanced = !this.advanced;
@@ -183,13 +248,53 @@ public class GuiCustomizeSkin extends GuiScreen
 
             if (button.id == 10)
             {
+                LabyMod.getInstance().openWebpage("https://www.labymod.net/#login", true);
+            }
+
+            if (button.id == 11)
+            {
                 this.mc.gameSettings.saveOptions();
-                this.mc.displayGuiScreen(new GuiCapeSettings(this));
+                this.mc.displayGuiScreen(new GuiCosmetics(this));
+            }
+
+            if (button.id == 12)
+            {
+                this.NEWLINE_SPLITTER.enabled = false;
+                (new SkinChanger(Minecraft.getMinecraft().getSession(), this.steveModel, new SkinChanger.MessageCallBack()
+                {
+                    public void ok(String p_ok_1_)
+                    {
+                        GuiCustomizeSkin.this.NEWLINE_SPLITTER.enabled = true;
+
+                        if (p_ok_1_.isEmpty())
+                        {
+                            GuiCustomizeSkin.this.output = Color.cl("a") + "Your skin has been changed, reconnect in order to see it!";
+                        }
+                        else if (p_ok_1_.contains("Current IP not secured"))
+                        {
+                            GuiCustomizeSkin.this.output = Color.cl("c") + "Your IP has been changed since your last login into the Minecraft website!";
+                        }
+                        else if (p_ok_1_.contains("The request requires user authentication"))
+                        {
+                            GuiCustomizeSkin.this.output = Color.cl("c") + "Invalid session id. (Try restarting your game)";
+                        }
+                        else
+                        {
+                            GuiCustomizeSkin.this.output = p_ok_1_;
+                        }
+                    }
+                })).start();
+            }
+
+            if (button.id == 13)
+            {
+                this.steveModel = !this.steveModel;
+                this.refreshButton();
             }
             else if (button.id == 200)
             {
                 this.mc.gameSettings.saveOptions();
-                this.mc.displayGuiScreen(this.parentScreen);
+                this.mc.displayGuiScreen(this.parentScreen1);
             }
             else if (button instanceof GuiCustomizeSkin.ButtonPart)
             {
@@ -208,24 +313,27 @@ public class GuiCustomizeSkin extends GuiScreen
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         this.drawDefaultBackground();
-        this.drawCenteredString(this.fontRendererObj, this.title, this.width / 2, 20, 16777215);
+        this.drawCenteredString(this.fontRendererObj, this.title1, this.width / 2, 20, 16777215);
 
         if (this.mc.thePlayer != null)
         {
             if (this.advanced)
             {
-                DrawUtils drawutils2 = LabyMod.getInstance().draw;
-                DrawUtils.drawEntityOnScreen(40, this.height - 10, 30, 40.0F - (float)mouseX, (float)(this.height - 10 - 120 + 75 - 50) - (float)mouseY, 0, this.mc.thePlayer);
+                DrawUtils drawutils = LabyMod.getInstance().draw;
+                DrawUtils.drawEntityOnScreen(40, this.height - 10, 30, 40.0F - (float)mouseX, (float)(this.height - 10 - 120 + 75 - 50) - (float)mouseY, 0, 0, this.mc.thePlayer);
             }
             else
             {
-                DrawUtils drawutils = LabyMod.getInstance().draw;
-                DrawUtils.drawEntityOnScreen(this.width / 2 - 20, this.height / 2 + 60, 30, (float)(this.width / 2 - 20 - mouseX), (float)(this.height / 2 - 40 - mouseY), 0, this.mc.thePlayer);
+                boolean flag = this.previewMouseDragX == 0.0F && this.previewMouseClickX == 0.0F && this.previewMouseDragY == 0.0F && this.previewMouseClickY == 0.0F;
+                float f = flag ? (float)(this.width / 2 - 20 - mouseX) : 0.0F;
+                float f1 = flag ? (float)(this.height / 2 - 40 - mouseY) : 0.0F;
+                DrawUtils drawutils2 = LabyMod.getInstance().draw;
+                DrawUtils.drawEntityOnScreen(this.width / 2 - 20, this.height / 2 + 60 - (this.previewMouseDragY == 0.0F ? 0 : 60), 30, f, f1, (int)(-this.previewMouseDragX), (int)(-this.previewMouseDragY), this.mc.thePlayer);
             }
 
             if (this.mc.isSingleplayer())
             {
-                LabyMod.getInstance().draw.drawString(Color.cl("c") + "Preview is not live!", 3.0D, (double)(this.height - 10));
+                LabyMod.getInstance().draw.drawString(Color.cl("c") + "Live preview only in multiplayer!", 3.0D, (double)(this.height - 10));
             }
         }
         else if (!this.advanced)
@@ -241,9 +349,64 @@ public class GuiCustomizeSkin extends GuiScreen
         if (!LabyMod.getInstance().isInGame())
         {
             this.zLevel.enabled = false;
+            this.title.enabled = false;
+        }
+
+        LabyMod.getInstance().draw.drawCenteredString(Color.cl("c") + this.output, this.width / 2, 5);
+        boolean flag1 = this.buttonRefresh.enabled;
+        this.buttonRefresh.enabled = REFRESH_COOLDOWN < System.currentTimeMillis();
+
+        if (!flag1 && this.buttonRefresh.enabled)
+        {
+            this.buttonRefresh.displayString = "Refresh";
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    /**
+     * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
+     */
+    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
+    {
+        if (mouseX > this.width / 2 - 100 && mouseX < this.width / 2 + 30 && mouseY > this.height / 2 - 100 && mouseY < this.height / 2 + 70)
+        {
+            this.previewMouseClickX = this.previewMouseDragX + (float)mouseX;
+            this.previewMouseClickY = this.previewMouseDragY + (float)mouseY;
+        }
+
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    /**
+     * Called when a mouse button is pressed and the mouse is moved around. Parameters are : mouseX, mouseY,
+     * lastButtonClicked & timeSinceMouseClick.
+     */
+    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick)
+    {
+        if (this.previewMouseClickX != 0.0F)
+        {
+            this.previewMouseDragX = this.previewMouseClickX - (float)mouseX;
+        }
+
+        if (this.previewMouseClickY != 0.0F)
+        {
+            this.previewMouseDragY = this.previewMouseClickY - (float)mouseY;
+        }
+
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    }
+
+    /**
+     * Called when a mouse button is released.  Args : mouseX, mouseY, releaseButton
+     */
+    protected void mouseReleased(int mouseX, int mouseY, int state)
+    {
+        this.previewMouseClickX = 0.0F;
+        this.previewMouseClickY = 0.0F;
+        this.previewMouseDragX %= 360.0F;
+        this.previewMouseDragY %= 360.0F;
+        super.mouseReleased(mouseX, mouseY, state);
     }
 
     /**
@@ -255,7 +418,7 @@ public class GuiCustomizeSkin extends GuiScreen
         if (keyCode == 1)
         {
             this.mc.gameSettings.saveOptions();
-            this.mc.displayGuiScreen(this.parentScreen);
+            this.mc.displayGuiScreen(this.parentScreen1);
         }
     }
 
@@ -286,9 +449,9 @@ public class GuiCustomizeSkin extends GuiScreen
             this.playerModelParts = playerModelParts;
         }
 
-        ButtonPart(int p_i3_2_, int p_i3_3_, int p_i3_4_, int p_i3_5_, int p_i3_6_, EnumPlayerModelParts p_i3_7_, Object p_i3_8_)
+        ButtonPart(int p_i4_2_, int p_i4_3_, int p_i4_4_, int p_i4_5_, int p_i4_6_, EnumPlayerModelParts p_i4_7_, Object p_i4_8_)
         {
-            this(p_i3_2_, p_i3_3_, p_i3_4_, p_i3_5_, p_i3_6_, p_i3_7_);
+            this(p_i4_2_, p_i4_3_, p_i4_4_, p_i4_5_, p_i4_6_, p_i4_7_);
         }
     }
 }

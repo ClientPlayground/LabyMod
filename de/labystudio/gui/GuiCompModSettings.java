@@ -1,6 +1,8 @@
 package de.labystudio.gui;
 
+import de.labystudio.labymod.ConfigManager;
 import de.labystudio.modapi.ModManager;
+import de.labystudio.utils.Color;
 import java.io.IOException;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -43,7 +45,9 @@ public class GuiCompModSettings extends GuiScreen
 
             if (i <= 12)
             {
-                this.buttonList.add(new GuiButton(i, this.width / 2 + k, 70 + j, l, 20, s));
+                GuiButton guibutton = new GuiButton(i, this.width / 2 + k, 70 + j, l, 20, s);
+                guibutton.enabled = ConfigManager.settings.api;
+                this.buttonList.add(guibutton);
 
                 if (!flag)
                 {
@@ -116,7 +120,7 @@ public class GuiCompModSettings extends GuiScreen
             s = "";
         }
 
-        this.drawCenteredString(this.fontRendererObj, "Mod Settings (" + ModManager.getSettings().size() + " Mod" + s + ")", this.width / 2, 15, 16777215);
+        this.drawCenteredString(this.fontRendererObj, ConfigManager.settings.api ? "Mod Settings (" + ModManager.getSettings().size() + " Mod" + s + ")" : Color.cl("c") + "LabyMod API is disabled! (LabyMod Settings -> Extras -> LabyMod API)", this.width / 2, 15, 16777215);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 }

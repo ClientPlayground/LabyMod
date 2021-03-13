@@ -104,11 +104,7 @@ public class ModManager
             {
                 for (String s2 : arraylist)
                 {
-                    if (Debug.api())
-                    {
-                        System.out.println("[DEBUG] Loading Mod " + s2);
-                    }
-
+                    Debug.debug("[DEBUG] Loading Mod " + s2);
                     JarEntry jarentry1 = jarfile.getJarEntry(s2);
                     InputStream inputstream = jarfile.getInputStream(jarentry1);
                     JsonElement jsonelement = (new JsonParser()).parse((Reader)(new InputStreamReader(inputstream)));

@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 
 public class TextureManager implements ITickable, IResourceManagerReloadListener {
    private static final Logger field_147646_a = LogManager.getLogger();
-   private final Map<ResourceLocation, ITextureObject> field_110585_a = Maps.<ResourceLocation, ITextureObject>newHashMap();
+   public final Map<ResourceLocation, ITextureObject> field_110585_a = Maps.<ResourceLocation, ITextureObject>newHashMap();
    private final List<ITickable> field_110583_b = Lists.<ITickable>newArrayList();
    private final Map<String, Integer> field_110584_c = Maps.<String, Integer>newHashMap();
    private IResourceManager field_110582_d;

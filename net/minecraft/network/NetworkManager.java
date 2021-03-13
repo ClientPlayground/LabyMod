@@ -1,22 +1,7 @@
 package net.minecraft.network;
 
-import java.net.InetAddress;
-import java.net.SocketAddress;
-import java.util.Queue;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.crypto.SecretKey;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.Marker;
-import org.apache.logging.log4j.MarkerManager;
-
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelException;
@@ -28,16 +13,25 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
 import io.netty.channel.local.LocalChannel;
 import io.netty.channel.local.LocalEventLoopGroup;
 import io.netty.channel.local.LocalServerChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.TimeoutException;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.util.Queue;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import javax.crypto.SecretKey;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.CryptManager;
@@ -48,6 +42,12 @@ import net.minecraft.util.MessageDeserializer;
 import net.minecraft.util.MessageDeserializer2;
 import net.minecraft.util.MessageSerializer;
 import net.minecraft.util.MessageSerializer2;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 public class NetworkManager extends SimpleChannelInboundHandler<Packet>
 {
@@ -62,7 +62,13 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet>
             return new NioEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Client IO #%d").setDaemon(true).build());
         }
     };
-    
+    public static final LazyLoadBase<EpollEventLoopGroup> field_181125_e = new LazyLoadBase<EpollEventLoopGroup>()
+    {
+        protected EpollEventLoopGroup load()
+        {
+            return new EpollEventLoopGroup(0, (new ThreadFactoryBuilder()).setNameFormat("Netty Epoll Client IO #%d").setDaemon(true).build());
+        }
+    };
     public static final LazyLoadBase<LocalEventLoopGroup> CLIENT_LOCAL_EVENTLOOP = new LazyLoadBase<LocalEventLoopGroup>()
     {
         protected LocalEventLoopGroup load()
@@ -339,9 +345,33 @@ public class NetworkManager extends SimpleChannelInboundHandler<Packet>
         Class <? extends SocketChannel > oclass;
         LazyLoadBase <? extends EventLoopGroup > lazyloadbase;
 
-        
+        if (Epoll.isAvailable() && p_181124_2_)
+        {
+            oclass = EpollSocketChannel.class;
+            lazyloadbase = field_181125_e;
+        }
+        else
+        {
+            oclass = NioSocketChannel.class;
+            lazyloadbase = CLIENT_NIO_EVENTLOOP;
+        }
 
-        
+        ((Bootstrap)((Bootstrap)((Bootstrap)(new Bootstrap()).group((EventLoopGroup)lazyloadbase.getValue())).handler(new ChannelInitializer<Channel>()
+        {
+            protected void initChannel(Channel p_initChannel_1_) throws Exception
+            {
+                try
+                {
+                    p_initChannel_1_.config().setOption(ChannelOption.TCP_NODELAY, Boolean.valueOf(true));
+                }
+                catch (ChannelException var3)
+                {
+                    ;
+                }
+
+                p_initChannel_1_.pipeline().addLast((String)"timeout", (ChannelHandler)(new ReadTimeoutHandler(30))).addLast((String)"splitter", (ChannelHandler)(new MessageDeserializer2())).addLast((String)"decoder", (ChannelHandler)(new MessageDeserializer(EnumPacketDirection.CLIENTBOUND))).addLast((String)"prepender", (ChannelHandler)(new MessageSerializer2())).addLast((String)"encoder", (ChannelHandler)(new MessageSerializer(EnumPacketDirection.SERVERBOUND))).addLast((String)"packet_handler", (ChannelHandler)networkmanager);
+            }
+        })).channel(oclass)).connect(p_181124_0_, p_181124_1_).syncUninterruptibly();
         return networkmanager;
     }
 

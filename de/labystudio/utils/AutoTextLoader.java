@@ -2,8 +2,6 @@ package de.labystudio.utils;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EnumPlayerModelParts;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
 
@@ -28,8 +28,6 @@ public class AutoTextLoader
 
     public static void load()
     {
-        Timings.start("Load AutoText Config");
-
         if (autoText.isEmpty())
         {
             autoText.clear();
@@ -38,40 +36,46 @@ public class AutoTextLoader
 
             try
             {
-                s = IOUtils.toString((InputStream)(new FileInputStream(Source.file_autoText)));
+                s = IOUtils.toString((InputStream)(new FileInputStream("LabyMod/friend_autotext.json")));
             }
-            catch (FileNotFoundException var2)
+            catch (FileNotFoundException var3)
             {
                 ;
             }
-            catch (IOException var3)
+            catch (IOException var4)
             {
                 ;
             }
 
-            autoText = (HashMap)Utils.ConvertJsonToObject.getFromJSON(s, HashMap.class);
+            try
+            {
+                autoText = (HashMap)Utils.ConvertJsonToObject.getFromJSON(s, HashMap.class);
+            }
+            catch (Exception exception)
+            {
+                (new File("LabyMod/friend_autotext.json")).delete();
+                exception.printStackTrace();
+            }
 
             if (autoText == null)
             {
                 autoText = new HashMap();
             }
-
-            Timings.stop("Load AutoText Config");
         }
     }
 
     public static void create()
     {
-        if (!(new File(Source.file_autoText)).exists())
+        if (!(new File("LabyMod/friend_autotext.json")).exists())
         {
             try
             {
-                if (!(new File(Source.file_autoText)).getParentFile().exists())
+                if (!(new File("LabyMod/friend_autotext.json")).getParentFile().exists())
                 {
-                    (new File(Source.file_autoText)).getParentFile().mkdirs();
+                    (new File("LabyMod/friend_autotext.json")).getParentFile().mkdirs();
                 }
 
-                (new File(Source.file_autoText)).createNewFile();
+                (new File("LabyMod/friend_autotext.json")).createNewFile();
             }
             catch (IOException var1)
             {
@@ -87,7 +91,7 @@ public class AutoTextLoader
 
         try
         {
-            PrintWriter printwriter = new PrintWriter(new FileOutputStream(Source.file_autoText));
+            PrintWriter printwriter = new PrintWriter(new FileOutputStream("LabyMod/friend_autotext.json"));
             printwriter.print(s);
             printwriter.flush();
             printwriter.close();
@@ -128,7 +132,7 @@ public class AutoTextLoader
         }
         else
         {
-            if (LabyMod.getInstance().mc.currentScreen == null && ConfigManager.settings.autoText && enabled && !repeat)
+            if (LabyMod.getInstance().mc.currentScreen == null && ConfigManager.settings.autoText && enabled && !repeat && Allowed.chat())
             {
                 for (String s : autoText.keySet())
                 {
@@ -137,13 +141,29 @@ public class AutoTextLoader
                         if (Keyboard.isKeyDown(getNormalKey(s)) && (!isShift(s) || Keyboard.isKeyDown(42)) && (!isCtrl(s) || Keyboard.isKeyDown(29)) && (!isAlt(s) || Keyboard.isKeyDown(56)))
                         {
                             repeat = true;
-                            LabyMod.getInstance().sendChatMessage((String)autoText.get(s));
-                            return;
+                            String s1 = (String)autoText.get(s);
+
+                            if (s1.contains("%togglelayer%"))
+                            {
+                                try
+                                {
+                                    int i = Integer.parseInt(s1.split("%togglelayer%")[1]);
+                                    Minecraft.getMinecraft().gameSettings.switchModelPartEnabled(EnumPlayerModelParts.values()[i]);
+                                }
+                                catch (Exception exception)
+                                {
+                                    exception.printStackTrace();
+                                }
+                            }
+                            else
+                            {
+                                LabyMod.getInstance().sendChatMessage(s1);
+                            }
                         }
                     }
-                    catch (Exception var4)
+                    catch (Exception exception1)
                     {
-                        ;
+                        exception1.printStackTrace();
                     }
                 }
             }
@@ -169,7 +189,7 @@ public class AutoTextLoader
     {
         try
         {
-            return Integer.parseInt(hotKeyCode.replace("#SHIFT", "").replace("#ALT", "").replace("#CTRL", ""));
+            return Integer.parseInt(hotKeyCode.replace("#SHIFT", "").replace("#ALT", "").replace("#CTRL", "").replace(";", ""));
         }
         catch (Exception var2)
         {

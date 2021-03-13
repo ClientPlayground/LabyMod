@@ -2,6 +2,7 @@ package net.minecraft.client.renderer.entity.layers;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.utils.Allowed;
+import java.util.UUID;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBiped;
@@ -40,9 +41,12 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
                 GlStateManager.scale(f, f, f);
             }
 
-            if (ConfigManager.settings.oldSword.booleanValue() && Allowed.animations())
+            if (ConfigManager.settings.oldSword && Allowed.animations())
             {
-                if (entitylivingbaseIn.isBlocking())
+                UUID uuid = entitylivingbaseIn.getUniqueID();
+                EntityPlayer entityplayer = Minecraft.getMinecraft().theWorld.getPlayerEntityByUUID(uuid);
+
+                if (entityplayer != null && entityplayer.isBlocking())
                 {
                     if (entitylivingbaseIn.isSneaking())
                     {

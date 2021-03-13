@@ -5,6 +5,8 @@ import com.google.common.collect.Ordering;
 import com.mojang.authlib.GameProfile;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
+import de.labystudio.modapi.ModAPI;
+import de.labystudio.modapi.events.RenderTabOverlayEvent;
 import de.labystudio.utils.Allowed;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
@@ -55,6 +57,18 @@ public class GuiPlayerTabOverlay extends Gui
      */
     public String getPlayerName(NetworkPlayerInfo networkPlayerInfoIn)
     {
+        if (ModAPI.enabled())
+        {
+            RenderTabOverlayEvent rendertaboverlayevent = new RenderTabOverlayEvent(networkPlayerInfoIn.getPlayerTeam());
+            ModAPI.callEvent(rendertaboverlayevent);
+            String s = rendertaboverlayevent.getResult();
+
+            if (s != null)
+            {
+                return s;
+            }
+        }
+
         return networkPlayerInfoIn.getDisplayName() != null ? FriendsLoader.getNick(networkPlayerInfoIn.getDisplayName().getFormattedText(), networkPlayerInfoIn.getGameProfile().getName()) : ScorePlayerTeam.formatPlayerName(networkPlayerInfoIn.getPlayerTeam(), FriendsLoader.getNick(networkPlayerInfoIn.getGameProfile().getName(), networkPlayerInfoIn.getGameProfile().getName()));
     }
 
@@ -329,7 +343,7 @@ public class GuiPlayerTabOverlay extends Gui
 
     protected void drawPing(int p_175245_1_, int p_175245_2_, int p_175245_3_, NetworkPlayerInfo networkPlayerInfoIn)
     {
-        if (ConfigManager.settings.tabPing.booleanValue() && Allowed.unfairExtra())
+        if (ConfigManager.settings.tabPing && Allowed.unfairExtra())
         {
             this.zLevel += 100.0F;
         }
@@ -414,7 +428,7 @@ public class GuiPlayerTabOverlay extends Gui
             s = "?";
         }
 
-        if (ConfigManager.settings.tabPing.booleanValue())
+        if (ConfigManager.settings.tabPing)
         {
             drawutils.drawCenteredString(Color.cl(s1) + s + "", (p_175245_2_ + p_175245_1_) * 2 - 12, p_175245_3_ * 2 + 5);
         }

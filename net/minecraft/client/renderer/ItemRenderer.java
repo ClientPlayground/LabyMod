@@ -266,7 +266,7 @@ public class ItemRenderer
      */
     private void transformFirstPersonItem(float equipProgress, float swingProgress)
     {
-        if (ConfigManager.settings.oldBow.booleanValue() && Allowed.animations() && this.mc != null && this.mc.thePlayer != null && this.mc.thePlayer.getItemInUse() != null && this.mc.thePlayer.getItemInUse().getItem() != null && Item.getIdFromItem(this.mc.thePlayer.getItemInUse().getItem()) == 261)
+        if (ConfigManager.settings.oldBow && Allowed.animations() && this.mc != null && this.mc.thePlayer != null && this.mc.thePlayer.getItemInUse() != null && this.mc.thePlayer.getItemInUse().getItem() != null && Item.getIdFromItem(this.mc.thePlayer.getItemInUse().getItem()) == 261)
         {
             GlStateManager.translate(0.0F, 0.0F, -0.08F);
         }
@@ -359,7 +359,7 @@ public class ItemRenderer
                 EnumAction enumaction = this.itemToRender.getItemUseAction();
                 float f4 = 0.0F;
 
-                if (ConfigManager.settings.oldBlockhit.booleanValue() && Allowed.animations())
+                if (ConfigManager.settings.oldBlockhit && Allowed.animations())
                 {
                     f4 = f1;
                 }

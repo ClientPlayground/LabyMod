@@ -74,8 +74,8 @@ public class AccountManager
         int i = field.getModifiers();
         Field field1 = field.getClass().getDeclaredField("modifiers");
         i = i & -17;
-        field.setAccessible(true);
-        field.setInt(field, i);
+        field1.setAccessible(true);
+        field1.setInt(field1, i);
     }
 
     public static Session authenticate(String username, String password) throws AuthenticationException

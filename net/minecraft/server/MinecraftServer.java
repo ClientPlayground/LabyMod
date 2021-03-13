@@ -257,7 +257,6 @@ public abstract class MinecraftServer implements Runnable, ICommandSender, IThre
     /**
      * Typically "menu.convertingLevel", "menu.loadingLevel" or others.
      */
-
     protected synchronized void setUserMessage(String message)
     {
         this.userMessage = message;

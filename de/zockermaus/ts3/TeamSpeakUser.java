@@ -53,7 +53,7 @@ public class TeamSpeakUser
 
     public String getNickName()
     {
-        return this.nickName;
+        return this.nickName.replace("\u00a7", "&");
     }
 
     protected void updateNickname(String nickname)

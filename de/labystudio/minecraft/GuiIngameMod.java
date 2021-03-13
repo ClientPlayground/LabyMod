@@ -7,7 +7,6 @@ import de.labystudio.gui.GuiStopWatch;
 import de.labystudio.labymod.ClickCounter;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import de.labystudio.listener.Games;
 import de.labystudio.listener.GommeHD;
 import de.labystudio.listener.HiveMC;
@@ -53,9 +52,14 @@ public class GuiIngameMod extends GuiIngame
     SimpleDateFormat dt1 = new SimpleDateFormat("HH:mm");
     SimpleDateFormat dt2 = new SimpleDateFormat("hh:mm a");
     ItemStack itemArrow = new ItemStack(Item.getItemById(262));
+    private String timeCache = "";
+    private long lastTimeCacheUpdate = 0L;
+    private String dateCache = "";
+    private long lastDateCacheUpdate = 0L;
     private final Minecraft mc;
     private final DrawUtils draw;
     int mouseLocation = 0;
+    public GuiIngame renderSubGui;
 
     public GuiIngameMod(Minecraft mcIn)
     {
@@ -158,7 +162,7 @@ public class GuiIngameMod extends GuiIngame
     {
         ModGui.mainList = set;
 
-        if (ConfigManager.settings.showFPS.booleanValue())
+        if (ConfigManager.settings.showFPS)
         {
             ModGui.addMainLabel("FPS", ModGui.getFPS() + "", ModGui.mainList);
         }
@@ -207,7 +211,7 @@ public class GuiIngameMod extends GuiIngame
             ModGui.addMainLabel("Online", LabyMod.getInstance().onlinePlayers.size() + "", ModGui.mainList);
         }
 
-        if (ConfigManager.settings.showServerIP.booleanValue() && !LabyMod.getInstance().ip.isEmpty())
+        if (ConfigManager.settings.showServerIP && !LabyMod.getInstance().ip.isEmpty())
         {
             ModGui.addMainLabel("IP", LabyMod.getInstance().ip + "", ModGui.mainList);
         }
@@ -229,7 +233,7 @@ public class GuiIngameMod extends GuiIngame
             ModGui.addMainLabel("Clicks", (int)ClickCounter.getClickResult() + "", ModGui.mainList);
         }
 
-        if (ConfigManager.settings.afkTimer.booleanValue())
+        if (ConfigManager.settings.afkTimer)
         {
             if (LabyMod.getInstance().isAFK)
             {
@@ -246,21 +250,45 @@ public class GuiIngameMod extends GuiIngame
             ModGui.addMainLabel("Kills", Games.kills + "", ModGui.mainList);
         }
 
-        if (ConfigManager.settings.showNickname.booleanValue() && !LabyMod.getInstance().nickname.isEmpty())
-        {
-            ModGui.addMainLabel("Nick", LabyMod.getInstance().nickname, ModGui.mainList);
-        }
-
         if (ConfigManager.settings.showClock)
         {
-            if (ConfigManager.settings.twelveHourClock)
+            if (this.lastTimeCacheUpdate < System.currentTimeMillis())
             {
-                ModGui.addMainLabel("Clock", "" + this.dt2.format(Long.valueOf(System.currentTimeMillis())), ModGui.mainList);
+                this.lastTimeCacheUpdate = System.currentTimeMillis() + 2000L;
+
+                if (ConfigManager.settings.twelveHourClock)
+                {
+                    this.timeCache = this.dt2.format(Long.valueOf(System.currentTimeMillis()));
+                }
+                else
+                {
+                    this.timeCache = this.dt1.format(Long.valueOf(System.currentTimeMillis()));
+                }
             }
-            else
+
+            ModGui.addMainLabel("Clock", "" + this.timeCache, ModGui.mainList);
+        }
+
+        if (ConfigManager.settings.showDate)
+        {
+            if (this.lastDateCacheUpdate < System.currentTimeMillis())
             {
-                ModGui.addMainLabel("Clock", "" + this.dt1.format(Long.valueOf(System.currentTimeMillis())), ModGui.mainList);
+                this.lastDateCacheUpdate = System.currentTimeMillis() + 2000L;
+                this.dateCache = ModGui.getDate();
             }
+
+            ModGui.addMainLabel("Date", this.dateCache, ModGui.mainList);
+        }
+
+        if (ConfigManager.settings.memory)
+        {
+            long i = Runtime.getRuntime().maxMemory();
+            long j = Runtime.getRuntime().totalMemory();
+            long k = Runtime.getRuntime().freeMemory();
+            long l = j - k;
+            long i1 = Long.valueOf(l * 100L / i).longValue();
+            String s1 = i1 >= 70L ? (i1 >= 90L ? Color.cl("4") : Color.cl("c")) : "";
+            ModGui.addMainLabel("Memory", s1 + i1 + "%", ModGui.mainList);
         }
     }
 
@@ -455,22 +483,29 @@ public class GuiIngameMod extends GuiIngame
 
     public void drawRadar()
     {
+        int i = 0;
+
+        if (ConfigManager.settings.showLiveTicker)
+        {
+            this.draw.drawCenteredString(LabyMod.getInstance().LIVETICKER.replace("&", Color.c), this.draw.getWidth() / 2, 2);
+            i += 10;
+        }
+
         if ((ConfigManager.settings.radarCoordinate || ConfigManager.settings.radarDirection) && Allowed.gui())
         {
-            int i = this.draw.getWidth() / 2;
-            int j = (int)MathHelper.wrapAngleTo180_float(this.mc.thePlayer.rotationYaw) * -1 - 360;
-            int k = 45;
-            int l = 0;
+            int j = this.draw.getWidth() / 2;
+            int k = (int)MathHelper.wrapAngleTo180_float(this.mc.thePlayer.rotationYaw) * -1 - 360;
+            int l = 45;
 
             if (BossStatus.bossName != null && BossStatus.statusBarTime > 0)
             {
                 if (ConfigManager.settings.showBossBar)
                 {
-                    l += 15;
+                    i += 15;
                 }
                 else
                 {
-                    l += 9;
+                    i += 9;
                 }
             }
 
@@ -478,13 +513,13 @@ public class GuiIngameMod extends GuiIngame
             {
                 for (double d0 = 0.0D; d0 <= 3.5D; d0 += 0.5D)
                 {
-                    if (this.draw.getWidth() / 2 + j > i - 50 && this.draw.getWidth() / 2 + j < i + 50)
+                    if (this.draw.getWidth() / 2 + k > j - 50 && this.draw.getWidth() / 2 + k < j + 50)
                     {
                         int j1 = 0;
 
                         if (ConfigManager.settings.radarCoordinate)
                         {
-                            this.draw.drawCenteredString(Color.c(3) + d0, this.draw.getWidth() / 2 + j, 4 + l + j1);
+                            this.draw.drawCenteredString(Color.c(3) + d0, this.draw.getWidth() / 2 + k, 4 + i + j1);
                             j1 += 10;
                         }
 
@@ -536,11 +571,11 @@ public class GuiIngameMod extends GuiIngame
                                 s = Color.c(1) + s;
                             }
 
-                            this.draw.drawCenteredString(Color.c(3) + s, this.draw.getWidth() / 2 + j, 4 + l + j1);
+                            this.draw.drawCenteredString(Color.c(3) + s, this.draw.getWidth() / 2 + k, 4 + i + j1);
                         }
                     }
 
-                    j += k;
+                    k += l;
                 }
             }
         }
@@ -553,61 +588,69 @@ public class GuiIngameMod extends GuiIngame
         Timolia.drawTimoliaGui();
         Revayd.drawRevaydGui();
         HiveMC.drawHiveGui();
+
+        if (ConfigManager.settings.showNickname && !LabyMod.getInstance().nickname.isEmpty())
+        {
+            ModGui.addMainLabel("Nick", LabyMod.getInstance().nickname, ModGui.mainList);
+        }
     }
 
     private void drawOnlineFriendsOnServer()
     {
         int i = 4;
 
-        try
+        if (ConfigManager.settings.showOnlineFriends)
         {
-            if (ConfigManager.settings.showOnlineFriends && !LabyMod.getInstance().isChatGUI() && ChatHandler.getMyFriends() != null && FriendsLoader.friends != null)
+            try
             {
-                ArrayList<String> arraylist = new ArrayList();
-                Iterator<LabyModPlayer> iterator = ChatHandler.getMyFriends().iterator();
-
-                while (iterator.hasNext())
+                if (!LabyMod.getInstance().isChatGUI() && ChatHandler.getMyFriends() != null && FriendsLoader.friends != null)
                 {
-                    arraylist.add(((LabyModPlayer)iterator.next()).getName().toLowerCase());
-                }
+                    ArrayList<String> arraylist = new ArrayList();
+                    Iterator<LabyModPlayer> iterator = ChatHandler.getMyFriends().iterator();
 
-                for (NetworkPlayerInfo networkplayerinfo : LabyMod.getInstance().onlinePlayers)
-                {
-                    if (LabyMod.getInstance().draw.getWidth() / 2 - 120 - i * 16 > 0 && networkplayerinfo != null && FriendsLoader.friends != null && networkplayerinfo.getGameProfile() != null && networkplayerinfo.getGameProfile().getName() != null && (FriendsLoader.friends.containsKey(networkplayerinfo.getGameProfile().getName()) || arraylist.contains(networkplayerinfo.getGameProfile().getName().toLowerCase())))
+                    while (iterator.hasNext())
                     {
-                        if (ConfigManager.settings.onlineFriendsPositionOnTop)
+                        arraylist.add(((LabyModPlayer)iterator.next()).getName().toLowerCase());
+                    }
+
+                    for (NetworkPlayerInfo networkplayerinfo : LabyMod.getInstance().onlinePlayers)
+                    {
+                        if (LabyMod.getInstance().draw.getWidth() / 2 - 120 - i * 16 > 0 && networkplayerinfo != null && FriendsLoader.friends != null && networkplayerinfo.getGameProfile() != null && networkplayerinfo.getGameProfile().getName() != null && (FriendsLoader.friends.containsKey(networkplayerinfo.getGameProfile().getName()) || arraylist.contains(networkplayerinfo.getGameProfile().getName().toLowerCase())))
                         {
-                            int j = LabyMod.getInstance().draw.getWidth() / 6 * 5;
-                            drawRect(j - i * 10 - 2, 0, j - i * 10 + 8, 9, Integer.MIN_VALUE);
-                            drawRect(j - i * 10 - 1, 1, j - i * 10 + 7, 8, Integer.MAX_VALUE);
-                            GlStateManager.color(1.0F, 1.0F, 1.0F);
-                            LabyMod.getInstance().textureManager.drawPlayerHead(networkplayerinfo.getGameProfile().getName(), (double)(j - i * 10), 4.5D, 0.19D);
-                            ++i;
-                        }
-                        else
-                        {
-                            int k = LabyMod.getInstance().draw.getWidth() / 2 - 120;
-                            drawRect(k - i * 16 - 2, this.draw.getHeight() - 1, k - i * 16 + 14, this.draw.getHeight() - 18, Integer.MIN_VALUE);
-                            drawRect(k - i * 16 - 1, this.draw.getHeight() - 2, k - i * 16 + 13, this.draw.getHeight() - 17, Integer.MAX_VALUE);
-                            GlStateManager.color(1.0F, 1.0F, 1.0F);
-                            LabyMod.getInstance().textureManager.drawPlayerHead(networkplayerinfo.getGameProfile().getName(), (double)(k - i * 16) + 0.4D, (double)this.draw.getHeight() - 12.5D, 0.37D);
-                            ++i;
+                            if (ConfigManager.settings.onlineFriendsPositionOnTop)
+                            {
+                                int j = LabyMod.getInstance().draw.getWidth() / 6 * 5;
+                                drawRect(j - i * 10 - 2, 0, j - i * 10 + 8, 9, Integer.MIN_VALUE);
+                                drawRect(j - i * 10 - 1, 1, j - i * 10 + 7, 8, Integer.MAX_VALUE);
+                                GlStateManager.color(1.0F, 1.0F, 1.0F);
+                                LabyMod.getInstance().textureManager.drawPlayerHead(networkplayerinfo.getGameProfile().getName(), (double)(j - i * 10), 4.5D, 0.19D);
+                                ++i;
+                            }
+                            else
+                            {
+                                int k = LabyMod.getInstance().draw.getWidth() / 2 - 120;
+                                drawRect(k - i * 16 - 2, this.draw.getHeight() - 1, k - i * 16 + 14, this.draw.getHeight() - 18, Integer.MIN_VALUE);
+                                drawRect(k - i * 16 - 1, this.draw.getHeight() - 2, k - i * 16 + 13, this.draw.getHeight() - 17, Integer.MAX_VALUE);
+                                GlStateManager.color(1.0F, 1.0F, 1.0F);
+                                LabyMod.getInstance().textureManager.drawPlayerHead(networkplayerinfo.getGameProfile().getName(), (double)(k - i * 16) + 0.4D, (double)this.draw.getHeight() - 12.5D, 0.37D);
+                                ++i;
+                            }
                         }
                     }
                 }
             }
-        }
-        catch (Exception var7)
-        {
-            ;
+            catch (Exception exception)
+            {
+                exception.printStackTrace();
+            }
         }
     }
 
     public void drawTeamSpeak()
     {
-        if (ConfigManager.settings.teamSpeak.booleanValue())
+        if (ConfigManager.settings.teamSpeak)
         {
-            if (ConfigManager.settings.teamSpakIngame || ConfigManager.settings.teamSpakIngameClients.booleanValue())
+            if (ConfigManager.settings.teamSpakIngame || ConfigManager.settings.teamSpakIngameClients)
             {
                 TeamSpeakUser teamspeakuser = TeamSpeakController.getInstance().me();
 
@@ -625,7 +668,7 @@ public class GuiIngameMod extends GuiIngame
                             ModGui.addMainLabel(s, "", ModGui.mainList);
                         }
 
-                        if (ConfigManager.settings.teamSpakIngameClients.booleanValue())
+                        if (ConfigManager.settings.teamSpakIngameClients)
                         {
                             for (TeamSpeakUser teamspeakuser1 : list)
                             {
@@ -671,8 +714,21 @@ public class GuiIngameMod extends GuiIngame
                         ModGui.mainListNext();
                     }
 
-                    ModGui.addMainLabel("Track", LabyMod.getInstance().getSpotifyManager().getTrackName(), ModGui.mainList);
-                    ModGui.addMainLabel("Artist", LabyMod.getInstance().getSpotifyManager().getArtistName(), ModGui.mainList);
+                    String s = LabyMod.getInstance().getSpotifyManager().getTrackName();
+                    String s1 = LabyMod.getInstance().getSpotifyManager().getArtistName();
+
+                    if (s.length() > 30)
+                    {
+                        s = s.substring(0, 30);
+                    }
+
+                    if (s1.length() > 30)
+                    {
+                        s1 = s1.substring(0, 30);
+                    }
+
+                    ModGui.addMainLabel("Track", s, ModGui.mainList);
+                    ModGui.addMainLabel("Artist", s1, ModGui.mainList);
                 }
             }
             else
@@ -783,7 +839,6 @@ public class GuiIngameMod extends GuiIngame
     public void renderGameOverlay(float partialTicks)
     {
         super.renderGameOverlay(partialTicks);
-        Timings.start("Render IngameGui");
         ModGui.mainList = 0;
         ModGui.offList = 0;
 
@@ -842,6 +897,23 @@ public class GuiIngameMod extends GuiIngame
         }
 
         LabyMod.getInstance().overlay(0, 0);
-        Timings.stop("Render IngameGui");
+
+        if (this.renderSubGui != null)
+        {
+            this.renderSubGui.renderGameOverlay(partialTicks);
+        }
+    }
+
+    /**
+     * The update tick for the ingame UI
+     */
+    public void updateTick()
+    {
+        super.updateTick();
+
+        if (this.renderSubGui != null)
+        {
+            this.renderSubGui.updateTick();
+        }
     }
 }

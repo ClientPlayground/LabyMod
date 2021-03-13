@@ -14,7 +14,7 @@ import org.apache.commons.io.IOUtils;
 
 public class ConfigManager
 {
-    public static File configFile = new File(Source.file_Config);
+    public static File configFile = new File("LabyMod/LabyMod.json");
     public static ModSettings settings;
     public static boolean loaded = false;
 
@@ -49,8 +49,6 @@ public class ConfigManager
 
     public static void loadProperties(boolean loop)
     {
-        Timings.start("Load Config");
-
         try
         {
             loaded = true;
@@ -95,8 +93,6 @@ public class ConfigManager
                 {
                     delete();
                 }
-
-                return;
             }
         }
         catch (Exception exception)
@@ -107,11 +103,7 @@ public class ConfigManager
             {
                 delete();
             }
-
-            return;
         }
-
-        Timings.stop("Load Config");
     }
 
     private static void delete()

@@ -1,5 +1,6 @@
 package de.labystudio.modapi;
 
+import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.DrawUtils;
 import java.lang.reflect.Method;
@@ -12,6 +13,7 @@ import net.minecraft.client.gui.GuiScreen;
 
 public class ModAPI
 {
+    public static boolean extendedAPI = false;
     public static int registeredEvents = 0;
 
     public static Event callEvent(Event event)
@@ -20,10 +22,8 @@ public class ModAPI
         {
             for (Entry<Listener, List<Method>> entry : event.getListenerMethods().entrySet())
             {
-                for (Object method0 : (List)entry.getValue())
+                for (Method method : entry.getValue())
                 {
-                    Method method = (Method) method0;
-
                     try
                     {
                         method.invoke(entry.getKey(), new Object[] {event});
@@ -46,7 +46,7 @@ public class ModAPI
 
     public static boolean enabled()
     {
-        return registeredEvents != 0;
+        return registeredEvents != 0 && ConfigManager.settings.api;
     }
 
     public static void registerListener(Listener listener)
@@ -59,7 +59,7 @@ public class ModAPI
 
                 if (method.isAnnotationPresent(EventHandler.class) && method.getParameterTypes()[0].getSuperclass() == Event.class)
                 {
-                    Class <? extends Event > oclass = (Class <? extends Event >) method.getParameterTypes()[0];
+                    Class <? extends Event > oclass = (Class<? extends Event>) method.getParameterTypes()[0];
                     Map<Listener, List<Method>> map = (Map)oclass.getDeclaredField("listenerMethods").get((Object)null);
 
                     if (!map.containsKey(listener))

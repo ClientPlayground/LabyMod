@@ -1,15 +1,10 @@
 package net.minecraft.client.gui;
 
 import com.google.common.collect.Lists;
-import de.labystudio.gui.GuiAutoText;
-import de.labystudio.gui.GuiFilter;
-import de.labystudio.gui.GuiSymbolSelector;
-import de.labystudio.labymod.ConfigManager;
-import de.labystudio.labymod.LabyMod;
-import de.labystudio.utils.Color;
-import de.labystudio.utils.DrawUtils;
+import de.labystudio.gui.chat.GuiChatHoverNameHistory;
 import java.io.IOException;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.play.client.C14PacketTabComplete;
 import net.minecraft.util.BlockPos;
 import net.minecraft.util.ChatComponentText;
@@ -60,52 +55,20 @@ public class GuiChat extends GuiScreen
      */
     public void initGui()
     {
+        if (!(Minecraft.getMinecraft().currentScreen instanceof GuiChatHoverNameHistory) && !(Minecraft.getMinecraft().currentScreen instanceof GuiSleepMP))
+        {
+            Minecraft.getMinecraft().displayGuiScreen(new GuiChatHoverNameHistory(this.defaultInputFieldText));
+        }
+
         Keyboard.enableRepeatEvents(true);
         this.sentHistoryCursor = this.mc.ingameGUI.getChatGUI().getSentMessages().size();
-        this.inputField = new GuiTextField(0, this.fontRendererObj, 4, this.height - 12, this.width - 4, 12);
+        this.inputField = new GuiTextField(0, this.fontRendererObj, 4, this.height - 12, this.width - 4 - 20, 12);
         this.inputField.setMaxStringLength(100);
         this.inputField.setEnableBackgroundDrawing(false);
         this.inputField.setFocused(true);
         this.inputField.setText(this.defaultInputFieldText);
         this.inputField.setCanLoseFocus(false);
-        int i = 0;
-        this.buttonList.add(new GuiButton(1, this.width - 48 - i, 4, 45, 20, Color.cl("a") + "Symbols"));
-        i = i + 47;
-
-        if (ConfigManager.settings.chatFilter.booleanValue())
-        {
-            this.buttonList.add(new GuiButton(2, this.width - 48 - i, 4, 45, 20, Color.cl("a") + "Filter"));
-            i += 47;
-        }
-
-        if (ConfigManager.settings.autoText)
-        {
-            this.buttonList.add(new GuiButton(3, this.width - 54 - i, 4, 50, 20, Color.cl("a") + "AutoText"));
-            i = i + 47;
-        }
-    }
-
-    /**
-     * Called by the controls from the buttonList when activated. (Mouse pressed for buttons)
-     */
-    protected void actionPerformed(GuiButton button) throws IOException
-    {
-        super.actionPerformed(button);
-
-        if (button.id == 1)
-        {
-            this.mc.displayGuiScreen(new GuiSymbolSelector(this.inputField.getText()));
-        }
-
-        if (button.id == 2)
-        {
-            this.mc.displayGuiScreen(new GuiFilter(this.inputField.getText()));
-        }
-
-        if (button.id == 3)
-        {
-            this.mc.displayGuiScreen(new GuiAutoText(this.inputField.getText()));
-        }
+        this.inputField.setCursorPositionEnd();
     }
 
     /**
@@ -151,10 +114,12 @@ public class GuiChat extends GuiScreen
             if (keyCode == 200)
             {
                 this.getSentHistory(-1);
+                this.inputField.setCursorPositionEnd();
             }
             else if (keyCode == 208)
             {
                 this.getSentHistory(1);
+                this.inputField.setCursorPositionEnd();
             }
             else if (keyCode == 201)
             {
@@ -222,6 +187,7 @@ public class GuiChat extends GuiScreen
 
             if (this.handleComponentClick(ichatcomponent))
             {
+                this.inputField.setCursorPositionEnd();
                 return;
             }
         }
@@ -345,7 +311,7 @@ public class GuiChat extends GuiScreen
      */
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
-        drawRect(2, this.height - 14, this.width - 2, this.height - 2, Integer.MIN_VALUE);
+        drawRect(2, this.height - 14, this.width - 2 - 14 * GuiChatHoverNameHistory.chatIcons.length, this.height - 2, Integer.MIN_VALUE);
         this.inputField.drawTextBox();
         IChatComponent ichatcomponent = this.mc.ingameGUI.getChatGUI().getChatComponent(Mouse.getX(), Mouse.getY());
 
@@ -355,8 +321,6 @@ public class GuiChat extends GuiScreen
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks);
-        DrawUtils drawutils = LabyMod.getInstance().draw;
-        DrawUtils.updateMouse(mouseX, mouseY);
     }
 
     public void onAutocompleteResponse(String[] p_146406_1_)

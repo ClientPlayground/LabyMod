@@ -7,8 +7,10 @@ import de.labystudio.chat.ClientConnection;
 import de.labystudio.chat.EnumAlertType;
 import de.labystudio.chat.LabyModPlayer;
 import de.labystudio.cosmetic.CosmeticManager;
+import de.labystudio.cosmetic.CosmeticTick;
 import de.labystudio.downloader.ModInfoDownloader;
 import de.labystudio.downloader.UserCapesDownloader;
+import de.labystudio.downloader.UserCosmeticsDownloader;
 import de.labystudio.gui.GuiAchievementMod;
 import de.labystudio.hologram.Manager;
 import de.labystudio.language.L;
@@ -31,6 +33,8 @@ import de.labystudio.spotify.SpotifyManager;
 import de.labystudio.utils.Allowed;
 import de.labystudio.utils.AutoTextLoader;
 import de.labystudio.utils.Color;
+import de.labystudio.utils.ControllerInput;
+import de.labystudio.utils.CrashFix;
 import de.labystudio.utils.Debug;
 import de.labystudio.utils.DrawUtils;
 import de.labystudio.utils.FilterLoader;
@@ -40,11 +44,12 @@ import de.labystudio.utils.ModGui;
 import de.labystudio.utils.ServerBroadcast;
 import de.labystudio.utils.ServiceStatus;
 import de.labystudio.utils.StatsLoader;
+import de.labystudio.utils.SupportLog;
 import de.labystudio.utils.TextureManager;
+import de.labystudio.utils.Utils;
 import de.zockermaus.ts3.TeamSpeak;
 import de.zockermaus.ts3.TeamSpeakController;
 import io.netty.buffer.Unpooled;
-import java.awt.Desktop;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -96,16 +101,12 @@ public class LabyMod extends Gui
     public ArrayList<String> gameTypes = new ArrayList();
     public ArrayList<String> serverMSG = new ArrayList();
     public HashMap<String, String> serverPing = new HashMap();
+    public ArrayList<String> dumb = new ArrayList();
+    public String dumb_str = null;
     public HashMap<String, ServiceStatus> mojangStatus = new HashMap();
     public ArrayList<String> commandQueue = new ArrayList();
     public ArrayList<NetworkPlayerInfo> onlinePlayers = new ArrayList();
     public boolean chat = true;
-    public String gommeHDSearch = "";
-    public boolean gommeHDSeachAllowed = false;
-    public boolean gommeHDSound = false;
-    public int gommeHDSeachPartySize = 0;
-    public String gommeHDSearchBlacklist = "";
-    public boolean gommeHDAutoJoin = false;
     public GuiAchievementMod achievementGui;
     public String line1 = "";
     public String line2 = "";
@@ -113,6 +114,10 @@ public class LabyMod extends Gui
     public GuiScreen lastScreen;
     public boolean joined = false;
     public boolean intentionally;
+    private int min;
+    private long secondLoop;
+    public int removeChallenge = 0;
+    private long lastReport = 0L;
     public boolean out = false;
     public GuiScreen onlineChat;
     public DrawUtils draw;
@@ -144,10 +149,10 @@ public class LabyMod extends Gui
     private CapeManager capeManager;
     private CosmeticManager cosmeticManager;
     private SpotifyManager spotifyManager;
+    public String LIVETICKER = "";
+    public boolean supportApply;
     private static LabyMod instance;
     private static boolean overwrite = false;
-    int min;
-    public int removeChallenge = 0;
 
     public static LabyMod getInstance()
     {
@@ -169,7 +174,7 @@ public class LabyMod extends Gui
 
         try
         {
-            Display.setTitle("Minecraft " + Source.mcVersion + " | LabyMod " + Source.mod_VersionName + " | Decompiled by DeltaTheH4x0r");
+            Display.setTitle("Minecraft 1.8.8 | LabyMod 2.8.05");
         }
         catch (Exception exception)
         {
@@ -180,9 +185,9 @@ public class LabyMod extends Gui
     public LabyMod()
     {
         instance = this;
+        SupportLog.overwrite();
         System.out.println("[LabyMod] Loading labymod..");
         L.load();
-        Timings.start("Enable LabyMod");
         this.mc = Minecraft.getMinecraft();
         this.textureManager = new TextureManager();
         this.draw = new DrawUtils();
@@ -190,13 +195,10 @@ public class LabyMod extends Gui
         this.achievementGui = new GuiAchievementMod(this.mc);
         this.client = new Client();
         this.handler = new ChatHandler();
-        this.handler.initDatabase();
         this.client.init();
-        this.runLoop();
         FriendsLoader.loadFriends();
         FilterLoader.loadFilters();
         AutoTextLoader.load();
-        StatsLoader.loadstats();
         this.capeManager = new CapeManager();
         this.cosmeticManager = new CosmeticManager();
 
@@ -205,19 +207,19 @@ public class LabyMod extends Gui
             this.spotifyManager = new SpotifyManager();
         }
 
-        if (ConfigManager.settings == null)
+        if (ConfigManager.settings != null)
         {
-            Timings.stop("Enable LabyMod");
-        }
-        else
-        {
-            if (ConfigManager.settings.teamSpeak.booleanValue())
+            if (ConfigManager.settings.teamSpeak)
             {
                 TeamSpeak.enable();
             }
 
+            Debug.debug("[LabyMod] Download all cape and cosmetic infos..");
             new ModInfoDownloader();
+            new UserCosmeticsDownloader();
             new UserCapesDownloader();
+            Debug.debug("[LabyMod] Loaded " + this.getCosmeticManager().getOnlineCosmetics().size() + " cosmetics!");
+            Debug.debug("[LabyMod] Loaded " + this.getCapeManager().countUserCapes() + " capes!");
             ModManager.loadMods();
 
             if (!LOGO.isLogo(this.getPlayerName()))
@@ -225,33 +227,52 @@ public class LabyMod extends Gui
                 ConfigManager.settings.logomode = false;
             }
 
-            Runtime.getRuntime().addShutdownHook(new Thread()
-            {
-                public void run()
-                {
-                    try
-                    {
-                        System.out.println("[LabyMod] Checking if you are using an outdated LabyMod version..");
+            this.updaterHook();
+            StatsLoader.loadstats();
 
-                        if (LabyMod.getInstance().autoUpdaterLatestVersionId > LabyMod.getInstance().autoUpdaterCurrentVersionId)
-                        {
-                            System.out.println("[LabyMod] You are outdated! You are still on Version v" + Source.mod_VersionName + ", the latest version v" + LabyMod.this.latestVersionName + " will now be installed..");
-                            Runtime.getRuntime().exec("java -jar LabyMod/Updater-" + Source.mcVersion + ".jar");
-                        }
-                        else
-                        {
-                            System.out.println("[LabyMod] You are using the latest LabyMod version v" + Source.mod_VersionName);
-                        }
-                    }
-                    catch (Exception exception)
+            if (ConfigManager.settings.controller)
+            {
+                ControllerInput.init();
+            }
+
+            File file1 = new File("server-resource-packs");
+
+            if (!file1.exists())
+            {
+                file1.mkdir();
+            }
+
+            System.out.println("[LabyMod] LabyMod Version 2.8.05 for Minecraft 1.8.8 loaded!");
+        }
+    }
+
+    private void updaterHook()
+    {
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            public void run()
+            {
+                try
+                {
+                    CrashFix.fixOptifineCrash();
+                    System.out.println("[LabyMod] Checking if you are using an outdated LabyMod version..");
+
+                    if (LabyMod.getInstance().autoUpdaterLatestVersionId > LabyMod.getInstance().autoUpdaterCurrentVersionId)
                     {
-                        exception.printStackTrace();
+                        System.out.println("[LabyMod] You are outdated! You are still on Version v2.8.05, the latest version v" + LabyMod.this.latestVersionName + " will now be installed..");
+                        Runtime.getRuntime().exec("java -jar LabyMod/Updater-1.8.8.jar");
+                    }
+                    else
+                    {
+                        System.out.println("[LabyMod] You are using the latest LabyMod version v2.8.05");
                     }
                 }
-            });
-            Timings.stop("Enable LabyMod");
-            System.out.println("[LabyMod] LabyMod Version " + Source.mod_VersionName + " for Minecraft " + Source.mcVersion + " loaded!");
-        }
+                catch (Exception exception)
+                {
+                    exception.printStackTrace();
+                }
+            }
+        });
     }
 
     public SpotifyManager getSpotifyManager()
@@ -313,7 +334,6 @@ public class LabyMod extends Gui
 
     public void resetMod()
     {
-        Timings.start("Reset Mod");
         this.scroll = 0;
         this.lavaTime = 0;
         this.playerPing = 0;
@@ -333,6 +353,8 @@ public class LabyMod extends Gui
             ChatHandler.updateGameMode("");
         }
 
+        this.header = null;
+        this.footer = null;
         JumpLeague.resetJumpLeague();
         GommeHD.resetGommeHD();
         Timolia.resetTimolia();
@@ -340,7 +362,6 @@ public class LabyMod extends Gui
         Games.reset();
         Revayd.reset();
         HiveMC.reset();
-        Timings.stop("Reset Mod");
     }
 
     public String getHeader()
@@ -371,7 +392,10 @@ public class LabyMod extends Gui
 
     public void displayMessageInChat(String message)
     {
-        Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new ChatComponentText(message));
+        if (Minecraft.getMinecraft().ingameGUI != null)
+        {
+            Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new ChatComponentText(message));
+        }
     }
 
     public void sendMessage(String prefix, LabyModPlayer player, String message)
@@ -404,7 +428,8 @@ public class LabyMod extends Gui
 
     public UUID getPlayerUUID()
     {
-        return this.mc.getSession().getProfile().getId();
+        UUID uuid = this.mc.getSession().getProfile().getId();
+        return uuid == null ? UUID.randomUUID() : uuid;
     }
 
     public boolean isInGame()
@@ -432,24 +457,31 @@ public class LabyMod extends Gui
         }
 
         ClickCounter.tick();
-    }
+        SupportLog.listenKey();
+        CosmeticTick.tickAllCosmetics();
 
-    public void runLoop()
-    {
-        (new ModThread()).start();
+        if (ConfigManager.settings.controller)
+        {
+            ControllerInput.tick();
+        }
+
+        ++this.secondLoop;
+
+        if (this.secondLoop >= 20L)
+        {
+            this.secondLoop = 0L;
+            this.secondLoop();
+        }
     }
 
     public void secondLoop()
     {
-        Timings.start("LabyMod Tick");
         ++this.min;
 
         if (this.getSpotifyManager() != null && ConfigManager.settings.spotfiyTrack)
         {
             this.getSpotifyManager().updateTitle();
         }
-
-        Debug.updateDebugMessages();
 
         if (this.isInGame())
         {
@@ -493,12 +525,10 @@ public class LabyMod extends Gui
 
         GommeHD.loop();
 
-        if (ConfigManager.settings.teamSpeak.booleanValue() && TeamSpeakController.getInstance() != null)
+        if (ConfigManager.settings.teamSpeak && TeamSpeakController.getInstance() != null)
         {
             TeamSpeakController.getInstance().tick();
         }
-
-        Timings.stop("LabyMod Tick");
     }
 
     public void minutesLoop()
@@ -509,7 +539,7 @@ public class LabyMod extends Gui
         }
     }
 
-    public void openWebpage(String urlString)
+    public boolean openWebpage(String urlString, boolean request)
     {
         try
         {
@@ -518,11 +548,13 @@ public class LabyMod extends Gui
                 urlString = "http://" + urlString;
             }
 
-            Desktop.getDesktop().browse((new URL(urlString)).toURI());
+            Utils.openWebpage((new URL(urlString)).toURI(), request);
+            return true;
         }
         catch (Exception exception)
         {
             exception.printStackTrace();
+            return false;
         }
     }
 
@@ -614,8 +646,6 @@ public class LabyMod extends Gui
 
     public void overlay(int mouseX, int mouseY)
     {
-        Timings.start("Overlay LabyMod");
-
         if (this.achievementGui != null && (!ConfigManager.settings.chatAlertType || !ConfigManager.settings.teamSpeakAlertTypeChat || !ConfigManager.settings.mojangStatusChat))
         {
             this.achievementGui.updateAchievementWindow();
@@ -624,8 +654,6 @@ public class LabyMod extends Gui
         DrawUtils drawutils = this.draw;
         DrawUtils.updateMouse(mouseX, mouseY);
         KeyListener.handle();
-        Timings.draw();
-        Timings.stop("Overlay LabyMod");
     }
 
     public void onRender()
@@ -640,6 +668,11 @@ public class LabyMod extends Gui
                 this.joined = true;
                 this.onJoin();
             }
+        }
+
+        if (ConfigManager.settings.controller)
+        {
+            ControllerInput.mouseTick();
         }
     }
 
@@ -656,12 +689,18 @@ public class LabyMod extends Gui
         }
 
         PacketBuffer packetbuffer = new PacketBuffer(Unpooled.buffer());
-        packetbuffer.writeString("LabyMod v" + Source.mod_VersionName);
+        packetbuffer.writeString("LabyMod v2.8.05");
         this.mc.getNetHandler().addToSendQueue(new C17PacketCustomPayload("LABYMOD", packetbuffer));
 
         if (this.chatPacketUpdate)
         {
-            this.displayMessageInChat(Color.cl("c") + "LabyMod is outdated!" + Color.cl("7") + " Download the latest version " + Color.cl("e") + "v" + this.latestVersionName + Color.cl("7") + " at " + Color.cl("9") + Source.url_Update + "");
+            this.displayMessageInChat(Color.cl("c") + "LabyMod is outdated!" + Color.cl("7") + " Download the latest version " + Color.cl("e") + "v" + this.latestVersionName + Color.cl("7") + " at " + Color.cl("9") + "https://www.LabyMod.net" + "");
+        }
+
+        if (this.ip.toLowerCase().contains("bessererange.tk"))
+        {
+            this.displayMessageInChat(Color.cl("4") + Color.cl("l") + "Du glaubst doch nicht wirklich,");
+            this.displayMessageInChat(Color.cl("4") + Color.cl("l") + "dass dir diese IP einen Vorteil bringt, oder?");
         }
     }
 
@@ -690,6 +729,51 @@ public class LabyMod extends Gui
         catch (Exception exception)
         {
             exception.printStackTrace();
+        }
+    }
+
+    public boolean onSendChatMessage(String msg)
+    {
+        String s = msg.toLowerCase();
+
+        if (!s.startsWith("/capereport") && !s.startsWith("/reportcape"))
+        {
+            return true;
+        }
+        else
+        {
+            if (msg.contains(" "))
+            {
+                if (this.lastReport < System.currentTimeMillis())
+                {
+                    final String s1 = msg.split(" ")[1];
+                    (new Thread(new Runnable()
+                    {
+                        public void run()
+                        {
+                            try
+                            {
+                                LabyMod.this.lastReport = System.currentTimeMillis() + 20000L;
+                                LabyMod.this.displayMessageInChat(Utils.jsonPost("http://api.labymod.net/php/capeReport.php", "reporter=" + LabyMod.this.getPlayerName() + "&capeowner=" + s1));
+                            }
+                            catch (Exception exception)
+                            {
+                                exception.printStackTrace();
+                            }
+                        }
+                    })).start();
+                }
+                else
+                {
+                    this.displayMessageInChat(Color.cl("c") + "You\'ve just reported a cape, please wait for a short while..");
+                }
+            }
+            else
+            {
+                this.displayMessageInChat(Color.cl("c") + msg + " <player>");
+            }
+
+            return false;
         }
     }
 }

@@ -1,5 +1,6 @@
 package de.labystudio.gui;
 
+import de.labystudio.gui.extras.GuiCustomButton;
 import de.labystudio.gui.extras.ModGuiTextField;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.AutoTextLoader;
@@ -37,9 +38,9 @@ public class GuiAutoText extends GuiScreen
 
     public void addSymbol(String symbol)
     {
-        GuiButton guibutton = new GuiButton(-1, this.width - 4 - 20 - this.z, 4 + this.y, 20, 20, symbol);
-        guibutton.run = "true";
-        this.buttonList.add(guibutton);
+        GuiCustomButton guicustombutton = new GuiCustomButton(-1, this.width - 4 - 20 - this.z, 4 + this.y, 20, 20, symbol);
+        guicustombutton.run = "true";
+        this.buttonList.add(guicustombutton);
         this.z += 24;
 
         if (this.z % (24 * this.lines) == 0)
@@ -61,10 +62,10 @@ public class GuiAutoText extends GuiScreen
 
         for (String s : AutoTextLoader.autoText.keySet())
         {
-            GuiButton guibutton = new GuiButton(-3, 0, 0, 20, 20, Color.cl("c") + "X");
-            guibutton.run = s;
-            this.buttonList.add(guibutton);
-            this.buttons.add(guibutton);
+            GuiCustomButton guicustombutton = new GuiCustomButton(-3, 0, 0, 20, 20, Color.cl("c") + "X");
+            guicustombutton.run = s;
+            this.buttonList.add(guicustombutton);
+            this.buttons.add(guicustombutton);
         }
     }
 
@@ -77,13 +78,13 @@ public class GuiAutoText extends GuiScreen
         {
             if (j < this.buttons.size())
             {
-                GuiButton guibutton = (GuiButton)this.buttons.get(j);
-                guibutton.visible = 6 + i > 15 && 6 + i < 160;
+                GuiCustomButton guicustombutton = (GuiCustomButton)this.buttons.get(j);
+                guicustombutton.visible = 6 + i > 15 && 6 + i < 160;
 
-                if (guibutton.visible)
+                if (guicustombutton.visible)
                 {
-                    guibutton.xPosition = this.width - 190;
-                    guibutton.yPosition = 6 + i;
+                    guicustombutton.xPosition = this.width - 190;
+                    guicustombutton.yPosition = 6 + i;
                     DrawUtils drawutils = this.draw;
                     DrawUtils.drawRect(this.width - 170, 6 + i, this.width - 7, 6 + i + 20, Integer.MIN_VALUE);
                     String s1 = "";
@@ -139,7 +140,14 @@ public class GuiAutoText extends GuiScreen
                 s = s + "#SHIFT";
             }
 
-            AutoTextLoader.autoText.put(s + AutoTextLoader.key, this.commandInput.getText());
+            String s1;
+
+            for (s1 = s + AutoTextLoader.key; AutoTextLoader.autoText.containsKey(s1); s1 = s1 + ";")
+            {
+                ;
+            }
+
+            AutoTextLoader.autoText.put(s1, this.commandInput.getText());
             this.initAutoText();
             AutoTextLoader.save();
         }
@@ -271,6 +279,7 @@ public class GuiAutoText extends GuiScreen
         this.chatField.setEnableBackgroundDrawing(false);
         this.chatField.setFocused(true);
         this.chatField.setText(this.text);
+        this.chatField.setCursorPositionEnd();
         this.commandInput = new ModGuiTextField(0, this.fontRendererObj, this.width - 160, 6, 110, 17);
         this.commandInput.setMaxStringLength(100);
         this.commandInput.setFocused(false);
@@ -310,17 +319,20 @@ public class GuiAutoText extends GuiScreen
             this.chatField.textboxKeyTyped(button.displayString.replace(Color.c + "", "").substring(0, 1).charAt(0), 0);
         }
 
-        if (button.run.equals("true"))
+        if (button instanceof GuiCustomButton)
         {
-            this.chatField.textboxKeyTyped(button.displayString.charAt(0), 0);
-        }
+            if (((GuiCustomButton)button).run.equals("true"))
+            {
+                this.chatField.textboxKeyTyped(button.displayString.charAt(0), 0);
+            }
 
-        if (button.id == -3)
-        {
-            AutoTextLoader.autoText.remove(button.run);
-            this.buttons.remove(button);
-            this.initGui();
-            AutoTextLoader.save();
+            if (button.id == -3)
+            {
+                AutoTextLoader.autoText.remove(((GuiCustomButton)button).run);
+                this.buttons.remove(button);
+                this.initGui();
+                AutoTextLoader.save();
+            }
         }
     }
 

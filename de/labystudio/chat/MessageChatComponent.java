@@ -157,7 +157,7 @@ public class MessageChatComponent
 
             if (!arraylist.isEmpty())
             {
-                LabyMod.getInstance().openWebpage((String)arraylist.get(0));
+                LabyMod.getInstance().openWebpage((String)arraylist.get(0), true);
             }
         }
     }

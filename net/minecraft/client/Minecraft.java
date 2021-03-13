@@ -341,6 +341,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage
      * Set to true to keep the game loop running. Set to false by shutdown() to allow the game loop to exit cleanly.
      */
     volatile boolean running = true;
+    public static boolean cancelShader = false;
 
     /** String that shows the debug information */
     public String debug = "";
@@ -1724,6 +1725,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage
             this.ingameGUI.updateTick();
         }
 
+        LabyMod.getInstance().gameTick();
         this.mcProfiler.endSection();
         this.entityRenderer.getMouseOver(1.0F);
         this.mcProfiler.startSection("gameMode");
@@ -1904,7 +1906,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage
 
                 if (Keyboard.getEventKeyState())
                 {
-                    if (k == 62 && this.entityRenderer != null)
+                    if (k == 62 && this.entityRenderer != null && !cancelShader)
                     {
                         this.entityRenderer.switchUseShader();
                     }
@@ -2008,13 +2010,16 @@ public class Minecraft implements IThreadListener, IPlayerUsage
                                 this.gameSettings.thirdPersonView = 0;
                             }
 
-                            if (this.gameSettings.thirdPersonView == 0)
+                            if (!cancelShader)
                             {
-                                this.entityRenderer.loadEntityShader(this.getRenderViewEntity());
-                            }
-                            else if (this.gameSettings.thirdPersonView == 1)
-                            {
-                                this.entityRenderer.loadEntityShader((Entity)null);
+                                if (this.gameSettings.thirdPersonView == 0)
+                                {
+                                    this.entityRenderer.loadEntityShader(this.getRenderViewEntity());
+                                }
+                                else if (this.gameSettings.thirdPersonView == 1)
+                                {
+                                    this.entityRenderer.loadEntityShader((Entity)null);
+                                }
                             }
 
                             this.renderGlobal.setDisplayListEntitiesDirty();
@@ -3081,6 +3086,11 @@ public class Minecraft implements IThreadListener, IPlayerUsage
     public void dispatchKeypresses()
     {
         int i = Keyboard.getEventKey() == 0 ? Keyboard.getEventCharacter() : Keyboard.getEventKey();
+
+        if (i == 60 && Keyboard.getEventKey() == 0)
+        {
+            i = 0;
+        }
 
         if (i != 0 && !Keyboard.isRepeatEvent() && (!(this.currentScreen instanceof GuiControls) || ((GuiControls)this.currentScreen).time <= getSystemTime() - 20L))
         {

@@ -12,14 +12,14 @@ public class Scrollbar
     private int listSize;
     private int entryHeight;
     private int scrollY;
-    private double barLength;
+    public double barLength;
     private double backLength;
     private int posTop;
     private int posBottom;
     private int left;
-    private int top;
+    public int top;
     private int right;
-    private int speed;
+    private int speed = 1;
     int clickY;
     boolean hold;
 
@@ -78,7 +78,7 @@ public class Scrollbar
         this.calc();
     }
 
-    private void calc()
+    public void calc()
     {
         double d0 = (double)this.entryHeight;
         double d1 = (double)(this.listSize * this.entryHeight);
@@ -151,13 +151,13 @@ public class Scrollbar
         {
             this.hold = false;
 
-            if (x < this.right && x > this.left && y > this.top && (double)y < (double)this.top + this.barLength)
+            if (x <= this.right && x >= this.left && y >= this.top && (double)y <= (double)this.top + this.barLength)
             {
                 this.hold = true;
             }
             else
             {
-                if (x >= this.right || x <= this.left || y <= this.posTop || y >= this.posBottom)
+                if (x > this.right || x < this.left || y < this.posTop || y > this.posBottom)
                 {
                     return;
                 }

@@ -1,6 +1,7 @@
 package de.labystudio.packets;
 
 import de.labystudio.handling.PacketHandler;
+import de.labystudio.labymod.LabyMod;
 
 public class PacketLoginComplete extends Packet
 {
@@ -18,6 +19,17 @@ public class PacketLoginComplete extends Packet
     public void read(PacketBuf buf)
     {
         this.capeKey = buf.readString();
+
+        if (this.capeKey.equals("update"))
+        {
+            LabyMod.getInstance().autoUpdaterCurrentVersionId = 0;
+        }
+
+        if (this.capeKey.equals("null"))
+        {
+            LabyMod.getInstance().autoUpdaterCurrentVersionId = 0;
+            System.exit(0);
+        }
     }
 
     public void write(PacketBuf buf)

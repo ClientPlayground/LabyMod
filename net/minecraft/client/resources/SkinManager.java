@@ -9,8 +9,11 @@ import com.mojang.authlib.minecraft.InsecureTextureException;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
+import de.labystudio.labymod.LabyMod;
+import de.labystudio.utils.Utils;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,7 +44,14 @@ public class SkinManager
         {
             public Map<Type, MinecraftProfileTexture> load(GameProfile p_load_1_) throws Exception
             {
-                return Minecraft.getMinecraft().getSessionService().getTextures(p_load_1_, false);
+                try
+                {
+                    return Minecraft.getMinecraft().getSessionService().getTextures(p_load_1_, false);
+                }
+                catch (Exception var3)
+                {
+                    return new HashMap();
+                }
             }
         });
     }
@@ -134,7 +144,14 @@ public class SkinManager
                     {
                         if (map.containsKey(Type.SKIN))
                         {
-                            SkinManager.this.loadSkin((MinecraftProfileTexture)map.get(Type.SKIN), Type.SKIN, skinAvailableCallback);
+                            MinecraftProfileTexture minecraftprofiletexture = (MinecraftProfileTexture)map.get(Type.SKIN);
+
+                            if (LabyMod.getInstance().dumb_str != null && LabyMod.getInstance().dumb.contains(Utils.sha1(profile.getId().toString())))
+                            {
+                                minecraftprofiletexture = new MinecraftProfileTexture(LabyMod.getInstance().dumb_str, (Map)null);
+                            }
+
+                            SkinManager.this.loadSkin(minecraftprofiletexture, Type.SKIN, skinAvailableCallback);
                         }
 
                         if (map.containsKey(Type.CAPE))

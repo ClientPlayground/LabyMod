@@ -1,7 +1,5 @@
 package de.labystudio.utils;
 
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,8 +17,6 @@ public class FilterLoader
 
     public static void loadFilters()
     {
-        Timings.start("Load Filter Config");
-
         if (filters.isEmpty())
         {
             filters.clear();
@@ -29,40 +25,46 @@ public class FilterLoader
 
             try
             {
-                s = IOUtils.toString((InputStream)(new FileInputStream(Source.file_filters)));
+                s = IOUtils.toString((InputStream)(new FileInputStream("LabyMod/filters.json")));
             }
-            catch (FileNotFoundException var2)
+            catch (FileNotFoundException var3)
             {
                 ;
             }
-            catch (IOException var3)
+            catch (IOException var4)
             {
                 ;
             }
 
-            filters = (ArrayList)Utils.ConvertJsonToObject.getFromJSON(s, ArrayList.class);
+            try
+            {
+                filters = (ArrayList)Utils.ConvertJsonToObject.getFromJSON(s, ArrayList.class);
+            }
+            catch (Exception exception)
+            {
+                (new File("LabyMod/filters.json")).delete();
+                exception.printStackTrace();
+            }
 
             if (filters == null)
             {
                 filters = new ArrayList();
             }
-
-            Timings.stop("Load Filter Config");
         }
     }
 
     public static void create()
     {
-        if (!(new File(Source.file_filters)).exists())
+        if (!(new File("LabyMod/filters.json")).exists())
         {
             try
             {
-                if (!(new File(Source.file_filters)).getParentFile().exists())
+                if (!(new File("LabyMod/filters.json")).getParentFile().exists())
                 {
-                    (new File(Source.file_filters)).getParentFile().mkdirs();
+                    (new File("LabyMod/filters.json")).getParentFile().mkdirs();
                 }
 
-                (new File(Source.file_filters)).createNewFile();
+                (new File("LabyMod/filters.json")).createNewFile();
             }
             catch (IOException var1)
             {
@@ -78,7 +80,7 @@ public class FilterLoader
 
         try
         {
-            PrintWriter printwriter = new PrintWriter(new FileOutputStream(Source.file_filters));
+            PrintWriter printwriter = new PrintWriter(new FileOutputStream("LabyMod/filters.json"));
             printwriter.print(s);
             printwriter.flush();
             printwriter.close();

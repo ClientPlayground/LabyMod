@@ -77,12 +77,12 @@ public class TeamSpeakListener implements ControlListener
                 {
                     if (ConfigManager.settings.alertsTeamSpeak)
                     {
-                        LabyMod.getInstance().displayMessageInChat(TeamSpeak.chatPrefix + Color.cl("9") + user.getNickName() + Color.cl("7") + ": " + TeamSpeak.url(message));
+                        LabyMod.getInstance().displayMessageInChat(TeamSpeak.chatPrefix + Color.cl("9") + user.getNickName() + Color.cl("7") + ": " + TeamSpeak.colors(TeamSpeak.url(message)));
                     }
                 }
                 else
                 {
-                    LabyMod.getInstance().achievementGui.displayBroadcast(user.getNickName(), TeamSpeak.url(message), EnumAlertType.TEAMSPEAK);
+                    LabyMod.getInstance().achievementGui.displayBroadcast(user.getNickName(), TeamSpeak.colors(TeamSpeak.url(message)), EnumAlertType.TEAMSPEAK);
                 }
             }
         }
@@ -98,12 +98,12 @@ public class TeamSpeakListener implements ControlListener
             {
                 if (ConfigManager.settings.alertsTeamSpeak)
                 {
-                    LabyMod.getInstance().displayMessageInChat(TeamSpeak.chatPrefix + Color.cl("9") + user.getNickName() + Color.cl("7") + ": " + TeamSpeak.url(message));
+                    LabyMod.getInstance().displayMessageInChat(TeamSpeak.chatPrefix + Color.cl("9") + user.getNickName() + Color.cl("7") + ": " + TeamSpeak.colors(TeamSpeak.url(message)));
                 }
             }
             else
             {
-                LabyMod.getInstance().achievementGui.displayBroadcast(user.getNickName(), TeamSpeak.url(message), EnumAlertType.TEAMSPEAK);
+                LabyMod.getInstance().achievementGui.displayBroadcast(user.getNickName(), TeamSpeak.colors(TeamSpeak.url(message)), EnumAlertType.TEAMSPEAK);
             }
         }
     }

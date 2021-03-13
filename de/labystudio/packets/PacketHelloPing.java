@@ -1,7 +1,6 @@
 package de.labystudio.packets;
 
 import de.labystudio.handling.PacketHandler;
-import de.labystudio.labymod.Source;
 
 public class PacketHelloPing extends Packet
 {
@@ -24,7 +23,7 @@ public class PacketHelloPing extends Packet
     public void write(PacketBuf buf)
     {
         buf.writeLong(this.a);
-        buf.writeInt(Source.mod_VersionId);
+        buf.writeInt(17);
     }
 
     public int getId()

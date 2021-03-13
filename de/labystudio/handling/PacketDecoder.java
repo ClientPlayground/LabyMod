@@ -1,6 +1,5 @@
 package de.labystudio.handling;
 
-import de.labystudio.chat.Logger;
 import de.labystudio.packets.Packet;
 import de.labystudio.packets.PacketBuf;
 import de.labystudio.packets.Protocol;
@@ -22,9 +21,9 @@ public class PacketDecoder extends ByteToMessageDecoder
             int i = packetbuf.readVarIntFromBuffer();
             Packet packet = Protocol.getProtocol().getPacket(i);
 
-            if (i != 62 && i != 63 && Debug.chat())
+            if (i != 62 && i != 63)
             {
-                Logger.getLogger().info("[IN] " + i + " " + packet.getClass().getSimpleName());
+                Debug.debug("[IN] " + i + " " + packet.getClass().getSimpleName());
             }
 
             packet.read(packetbuf);

@@ -40,7 +40,7 @@ public class GuiNewModChat
                 resetScroll();
             }
 
-            if (ConfigManager.settings.extraChat.booleanValue() || ConfigManager.settings.chatFilter.booleanValue() || ConfigManager.settings.chatPositionRight)
+            if (ConfigManager.settings.extraChat || ConfigManager.settings.chatFilter || ConfigManager.settings.chatPositionRight)
             {
                 int i = getLineCount();
                 boolean flag = false;
@@ -95,8 +95,13 @@ public class GuiNewModChat
                                     String s = chatline.getChatComponent().getFormattedText();
                                     s = ChatListener.replaceMessage(chatline.getChatComponent().getFormattedText(), chatline.getChatComponent().getUnformattedText());
                                     l = MathHelper.ceiling_float_int((float)getChatWidth() / f1 + 2.0F);
-                                    DrawUtils drawutils1 = LabyMod.getInstance().draw;
-                                    DrawUtils.drawRect(l + 5, j2 - 9, 3000, j2, k1 / 2 << 24);
+
+                                    if (!ConfigManager.settings.fastChat)
+                                    {
+                                        DrawUtils drawutils1 = LabyMod.getInstance().draw;
+                                        DrawUtils.drawRect(l + 5, j2 - 9, 3000, j2, k1 / 2 << 24);
+                                    }
+
                                     GlStateManager.enableBlend();
                                     Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s, (float)(l + 8), (float)(j2 - 8), 16777215 + (k1 << 24));
                                     GlStateManager.disableAlpha();
@@ -146,7 +151,7 @@ public class GuiNewModChat
 
     public static void printChatMessageWithOptionalDeletion(IChatComponent p_146234_1_, int p_146234_2_)
     {
-        if (ChatListener.allowedToPrint(p_146234_1_.getFormattedText(), p_146234_1_.getUnformattedText()))
+        if (ChatListener.allowedToPrint(p_146234_1_))
         {
             setChatLine(p_146234_1_, p_146234_2_, Minecraft.getMinecraft().ingameGUI.getUpdateCounter(), false);
             logger.info("[CHAT] " + p_146234_1_.getUnformattedText());
@@ -164,17 +169,16 @@ public class GuiNewModChat
         List list = GuiUtilRenderComponents.func_178908_a(p_146237_1_, i, Minecraft.getMinecraft().fontRendererObj, false, false);
         boolean flag = getChatOpen();
 
-        for (Object ichatcomponent0 : list)
+        for (Object ichatcomponent : list)
         {
-            IChatComponent ichatcomponent = (IChatComponent) ichatcomponent0;
-
+        	IChatComponent i1 = (IChatComponent)ichatcomponent;
             if (flag && scrollPos > 0)
             {
                 isScrolled = true;
                 scroll(1);
             }
 
-            field_146253_i.add(0, new ChatLine(p_146237_3_, ichatcomponent, p_146237_2_));
+            field_146253_i.add(0, new ChatLine(p_146237_3_, i1, p_146237_2_));
         }
 
         while (field_146253_i.size() > 100)
@@ -308,7 +312,7 @@ public class GuiNewModChat
 
     public static boolean getChatOpen()
     {
-        return Minecraft.getMinecraft().currentScreen instanceof GuiChat || Minecraft.getMinecraft().currentScreen instanceof GuiSymbolSelector;
+        return Minecraft.getMinecraft().currentScreen instanceof GuiChat || Minecraft.getMinecraft().currentScreen instanceof GuiNameHistory || Minecraft.getMinecraft().currentScreen instanceof GuiFilter || Minecraft.getMinecraft().currentScreen instanceof GuiAutoText;
     }
 
     public static void deleteChatLine(int p_146242_1_)

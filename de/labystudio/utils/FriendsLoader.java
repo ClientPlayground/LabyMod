@@ -1,18 +1,15 @@
 package de.labystudio.utils;
 
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
+import de.labystudio.labymod.ConfigManager;
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.io.IOUtils;
 
 public class FriendsLoader
 {
@@ -20,50 +17,67 @@ public class FriendsLoader
 
     public static void loadFriends()
     {
-        Timings.start("Load Friends Config");
-
         if (friends.isEmpty())
         {
             friends.clear();
             String s = "";
-            create();
 
             try
             {
-                s = IOUtils.toString((InputStream)(new FileInputStream(Source.file_friendTags)), (Charset)Charset.forName("UTF-8"));
+                create();
+                BufferedReader bufferedreader = new BufferedReader(new FileReader("LabyMod/friend_tags.json"));
+
+                try
+                {
+                    StringBuilder stringbuilder = new StringBuilder();
+
+                    for (String s1 = bufferedreader.readLine(); s1 != null; s1 = bufferedreader.readLine())
+                    {
+                        stringbuilder.append(s1);
+                        stringbuilder.append("\n");
+                    }
+
+                    s = stringbuilder.toString();
+                }
+                finally
+                {
+                    bufferedreader.close();
+                }
             }
-            catch (FileNotFoundException var2)
+            catch (Exception exception1)
             {
-                ;
-            }
-            catch (IOException var3)
-            {
-                ;
+                exception1.printStackTrace();
             }
 
-            friends = (Map)Utils.ConvertJsonToObject.getFromJSON(s, Map.class);
+            try
+            {
+                friends = (Map)Utils.ConvertJsonToObject.getFromJSON(s, Map.class);
+            }
+            catch (Exception exception)
+            {
+                (new File("LabyMod/friend_tags.json")).delete();
+                exception.printStackTrace();
+            }
 
             if (friends == null)
             {
                 friends = new HashMap();
             }
-
-            Timings.stop("Load Friends Config");
         }
     }
 
     public static void create()
     {
-        if (!(new File(Source.file_friendTags)).exists())
+        if (!(new File("LabyMod/friend_tags.json")).exists())
         {
             try
             {
-                if (!(new File(Source.file_friendTags)).getParentFile().exists())
+                if (!(new File("LabyMod/friend_tags.json")).getParentFile().exists())
                 {
-                    (new File(Source.file_friendTags)).getParentFile().mkdirs();
+                    (new File("LabyMod/friend_tags.json")).getParentFile().mkdirs();
                 }
 
-                (new File(Source.file_friendTags)).createNewFile();
+                (new File("LabyMod/friend_tags.json")).createNewFile();
             }
             catch (IOException var1)
             {
@@ -74,7 +88,34 @@ public class FriendsLoader
 
     public static String getNick(String name, String blank)
     {
-        return !Allowed.nick() ? name : (friends.containsKey(blank) && !((String)friends.get(blank)).replace(" ", "").isEmpty() ? ((String)friends.get(blank)).replace("&", Color.c) : name);
+        if (Allowed.nick() && ConfigManager.settings.tags && !friends.isEmpty())
+        {
+            if (friends.containsKey(blank) && !((String)friends.get(blank)).replace(" ", "").isEmpty())
+            {
+                return ((String)friends.get(blank)).replace("&", Color.c);
+            }
+            else
+            {
+                for (String s : friends.keySet())
+                {
+                    if (s.startsWith("@"))
+                    {
+                        s = s.replace("@", "");
+
+                        if (blank.contains(s))
+                        {
+                            return name.replace(s, ((String)friends.get("@" + s)).replace("&", Color.c));
+                        }
+                    }
+                }
+
+                return name;
+            }
+        }
+        else
+        {
+            return name;
+        }
     }
 
     public static void saveFriends()
@@ -84,7 +125,7 @@ public class FriendsLoader
 
         try
         {
-            PrintWriter printwriter = new PrintWriter(new FileOutputStream(Source.file_friendTags));
+            PrintWriter printwriter = new PrintWriter(new FileOutputStream("LabyMod/friend_tags.json"));
             printwriter.print(s);
             printwriter.flush();
             printwriter.close();

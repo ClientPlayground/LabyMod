@@ -2,12 +2,9 @@ package net.minecraft.client.gui;
 
 import com.google.common.collect.Lists;
 import de.labystudio.gui.GuiNewModChat;
-import de.labystudio.gui.GuiSymbolSelector;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.listener.ChatListener;
-import de.labystudio.modapi.ModAPI;
-import de.labystudio.modapi.events.ChatReceivedEvent;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
 import de.labystudio.utils.FilterLoader;
@@ -110,7 +107,8 @@ public class GuiNewChat extends Gui
                                 int j2 = -l1 * 9;
                                 ++l1;
                                 String s = chatline.getChatComponent().getFormattedText();
-                                String s1 = " " + Color.cl("e") + "\u270e" + Color.cl("f");
+                                char c0 = 9998;
+                                String s1 = " " + Color.cl("e") + c0 + Color.cl("f");
                                 s = ChatListener.replaceMessage(chatline.getChatComponent().getFormattedText(), chatline.getChatComponent().getUnformattedText());
 
                                 if (!s.equals(s))
@@ -122,7 +120,7 @@ public class GuiNewChat extends Gui
                                 {
                                     drawRect(b0, j2 - 9, b0 + l + 4, j2, 1574235432);
                                 }
-                                else
+                                else if (!ConfigManager.settings.fastChat)
                                 {
                                     drawRect(b0, j2 - 9, b0 + l + 4, j2, k1 / 2 << 24);
                                 }
@@ -189,7 +187,7 @@ public class GuiNewChat extends Gui
      */
     public void printChatMessageWithOptionalDeletion(IChatComponent p_146234_1_, int p_146234_2_)
     {
-        if (ChatListener.allowedToPrint(p_146234_1_.getFormattedText(), p_146234_1_.getUnformattedText()))
+        if (ChatListener.allowedToPrint(p_146234_1_))
         {
             this.setChatLine(p_146234_1_, p_146234_2_, this.mc.ingameGUI.getUpdateCounter(), false);
             logger.info("[CHAT] " + p_146234_1_.getUnformattedText());
@@ -198,11 +196,6 @@ public class GuiNewChat extends Gui
 
     private void setChatLine(IChatComponent p_146237_1_, int p_146237_2_, int p_146237_3_, boolean p_146237_4_)
     {
-        if (p_146237_1_ != null && ModAPI.enabled() && !p_146237_4_)
-        {
-            ModAPI.callEvent(new ChatReceivedEvent(p_146237_1_.getFormattedText(), p_146237_1_.getUnformattedText()));
-        }
-
         boolean flag = ChatListener.isServerMSG(Color.removeColor(p_146237_1_.getUnformattedText()));
 
         if (!ConfigManager.settings.chatPositionRight)
@@ -225,17 +218,16 @@ public class GuiNewChat extends Gui
             List list = GuiUtilRenderComponents.func_178908_a(p_146237_1_, i, this.mc.fontRendererObj, false, false);
             boolean flag1 = this.getChatOpen();
 
-            for (Object ichatcomponent0 : list)
+            for (Object ichatcomponent : list)
             {
-                IChatComponent ichatcomponent = (IChatComponent) ichatcomponent0;
-
+            	IChatComponent i1 = (IChatComponent)ichatcomponent;
                 if (flag1 && this.scrollPos > 0)
                 {
                     this.isScrolled = true;
                     this.scroll(1);
                 }
 
-                this.field_146253_i.add(0, new ChatLine(p_146237_3_, ichatcomponent, p_146237_2_));
+                this.field_146253_i.add(0, new ChatLine(p_146237_3_, i1, p_146237_2_));
             }
 
             while (this.field_146253_i.size() > 100)
@@ -306,7 +298,7 @@ public class GuiNewChat extends Gui
         GuiNewModChat.scroll(p_146229_1_);
         DrawUtils drawutils = LabyMod.getInstance().draw;
 
-        if (DrawUtils.getMouseX() <= this.getChatWidth() || !ConfigManager.settings.extraChat.booleanValue() && !ConfigManager.settings.chatFilter.booleanValue())
+        if (DrawUtils.getMouseX() <= this.getChatWidth() || !ConfigManager.settings.extraChat && !ConfigManager.settings.chatFilter)
         {
             this.scrollPos += p_146229_1_;
             int i = this.field_146253_i.size();
@@ -389,7 +381,7 @@ public class GuiNewChat extends Gui
      */
     public boolean getChatOpen()
     {
-        return this.mc.currentScreen instanceof GuiChat || this.mc.currentScreen instanceof GuiSymbolSelector;
+        return Minecraft.getMinecraft().currentScreen instanceof GuiChat;
     }
 
     /**

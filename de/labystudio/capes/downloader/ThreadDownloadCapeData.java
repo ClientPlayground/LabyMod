@@ -30,14 +30,16 @@ public class ThreadDownloadCapeData extends SimpleTexture
     public Boolean imageFound = null;
     public boolean pipeline = false;
     private CapeCallback callBack;
+    private ResourceLocation resourceLocation;
 
     public ThreadDownloadCapeData(File cacheFileIn, String imageUrlIn, ResourceLocation textureResourceLocation, IImageBuffer imageBufferIn, CapeCallback callBack)
     {
-        super(textureResourceLocation);
+        super((ResourceLocation)null);
         this.cacheFile = cacheFileIn;
         this.imageUrl = imageUrlIn;
         this.imageBuffer = imageBufferIn;
         this.callBack = callBack;
+        this.resourceLocation = textureResourceLocation;
     }
 
     private void checkTextureUploaded()
@@ -84,7 +86,7 @@ public class ThreadDownloadCapeData extends SimpleTexture
         {
             if (this.cacheFile != null && this.cacheFile.isFile())
             {
-                Debug.debug(Debug.EnumDebugMode.CAPES, "Loading http texture from local cache (" + this.cacheFile + ")");
+                Debug.debug("Loading http texture from local cache (" + this.cacheFile + ")");
 
                 try
                 {
@@ -99,7 +101,7 @@ public class ThreadDownloadCapeData extends SimpleTexture
                 }
                 catch (IOException var3)
                 {
-                    Debug.debug(Debug.EnumDebugMode.CAPES, "Couldn\'t load skin " + this.cacheFile);
+                    Debug.debug("Couldn\'t load skin " + this.cacheFile);
                     this.loadTextureFromServer();
                 }
             }
@@ -118,7 +120,7 @@ public class ThreadDownloadCapeData extends SimpleTexture
             public void run()
             {
                 HttpURLConnection httpurlconnection = null;
-                Debug.debug(Debug.EnumDebugMode.CAPES, "Downloading http texture from " + ThreadDownloadCapeData.this.imageUrl + " to " + ThreadDownloadCapeData.this.cacheFile);
+                Debug.debug("Downloading http texture from " + ThreadDownloadCapeData.this.imageUrl + " to " + ThreadDownloadCapeData.this.cacheFile);
 
                 try
                 {
@@ -150,12 +152,12 @@ public class ThreadDownloadCapeData extends SimpleTexture
                     }
                     else if (httpurlconnection.getErrorStream() != null)
                     {
-                        Debug.debug(Debug.EnumDebugMode.CAPES, httpurlconnection.getErrorStream().toString());
+                        Debug.debug(httpurlconnection.getErrorStream().toString());
                     }
                 }
                 catch (Exception exception)
                 {
-                    Debug.debug(Debug.EnumDebugMode.CAPES, "Couldn\'t download http texture: " + exception.getClass().getName() + ": " + exception.getMessage());
+                    Debug.debug("Couldn\'t download http texture: " + exception.getClass().getName() + ": " + exception.getMessage());
                 }
                 finally
                 {
@@ -173,11 +175,11 @@ public class ThreadDownloadCapeData extends SimpleTexture
                     else
                     {
                         ThreadDownloadCapeData.this.callBack.failed("Texture not found");
+                        Minecraft.getMinecraft().getTextureManager().mapTextureObjects.remove(ThreadDownloadCapeData.this.resourceLocation);
                     }
                 }
             }
         };
-        this.imageThread.setDaemon(true);
         this.imageThread.start();
     }
 }

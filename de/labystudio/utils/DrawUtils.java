@@ -74,7 +74,7 @@ public class DrawUtils extends Gui
 
     public void addNoScaleLabel(String prefix, String text, int slot)
     {
-        if (ConfigManager.settings.guiPositionRight.booleanValue())
+        if (ConfigManager.settings.guiPositionRight)
         {
             this.drawRightString(ModGui.createLabel(prefix, text), (double)(this.getWidth() - 2), (double)slot);
         }
@@ -86,7 +86,7 @@ public class DrawUtils extends Gui
 
     public void addString(String text, int slot)
     {
-        if (ConfigManager.settings.guiPositionRight.booleanValue())
+        if (ConfigManager.settings.guiPositionRight)
         {
             this.drawRightString(text, (double)((int)((double)(this.getWidth() - 2) / this.getScale(ConfigManager.settings.size))), (double)slot);
         }
@@ -98,7 +98,7 @@ public class DrawUtils extends Gui
 
     public void addRightString(String text, int slot)
     {
-        if (!ConfigManager.settings.guiPositionRight.booleanValue())
+        if (!ConfigManager.settings.guiPositionRight)
         {
             this.drawRightString(text, (double)((int)((double)(this.getWidth() - 2) / this.getScale(ConfigManager.settings.size))), (double)slot);
         }
@@ -110,7 +110,7 @@ public class DrawUtils extends Gui
 
     public void addNoScaleString(String text, int slot)
     {
-        if (ConfigManager.settings.guiPositionRight.booleanValue())
+        if (ConfigManager.settings.guiPositionRight)
         {
             this.drawRightString(text, (double)(this.getWidth() - 2), (double)slot);
         }
@@ -457,7 +457,7 @@ public class DrawUtils extends Gui
         tessellator.draw();
     }
 
-    public static void drawEntityOnScreen(int x, int y, int size, float mouseX, float mouseY, int rotation, EntityLivingBase entity)
+    public static void drawEntityOnScreen(int x, int y, int size, float mouseX, float mouseY, int rotationX, int rotationY, EntityLivingBase entity)
     {
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
@@ -471,7 +471,8 @@ public class DrawUtils extends Gui
         float f4 = entity.rotationYawHead;
         GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
         RenderHelper.enableStandardItemLighting();
-        GlStateManager.rotate(-135.0F + (float)rotation, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(-135.0F + (float)rotationX, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate((float)rotationY, 1.0F, 0.0F, 0.0F);
         GlStateManager.rotate(-((float)Math.atan((double)(mouseY / 40.0F))) * 20.0F, 1.0F, 0.0F, 0.0F);
         entity.renderYawOffset = (float)Math.atan((double)(mouseX / 40.0F)) * 20.0F;
         entity.rotationYaw = (float)Math.atan((double)(mouseX / 40.0F)) * 40.0F;
@@ -482,7 +483,7 @@ public class DrawUtils extends Gui
         RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
         rendermanager.setPlayerViewY(180.0F);
         rendermanager.setRenderShadow(false);
-        rendermanager.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+        rendermanager.renderEntityWithPosYaw(entity, 0.0D, rotationY == 0 ? 0.0D : -1.0D, 0.0D, 0.0F, 1.0F);
         rendermanager.setRenderShadow(true);
         entity.renderYawOffset = f;
         entity.rotationYaw = f1;
@@ -495,5 +496,54 @@ public class DrawUtils extends Gui
         GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.disableTexture2D();
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    public String trimStringToWidth(String text, int width)
+    {
+        return text == null ? text : this.fontRenderer.trimStringToWidth(text, width, false);
+    }
+
+    public List<String> listFormattedStringToWidth(String str, int wrapWidth)
+    {
+        if (wrapWidth < 10)
+        {
+            wrapWidth = 10;
+        }
+
+        return this.fontRenderer.listFormattedStringToWidth(str, wrapWidth);
+    }
+
+    public void drawTexturedModalRectUV(double x, double y, double textureX, double textureY, double width, double height)
+    {
+        float f = 0.00390625F;
+        float f1 = 0.00390625F;
+        Tessellator tessellator = Tessellator.getInstance();
+        WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX);
+        worldrenderer.pos(x + 0.0D, y + height, (double)this.zLevel).tex((double)((float)(textureX + 0.0D) * f), (double)((float)(textureY + height) * f1)).endVertex();
+        worldrenderer.pos(x + width, y + height, (double)this.zLevel).tex((double)((float)(textureX + width) * f), (double)((float)(textureY + height) * f1)).endVertex();
+        worldrenderer.pos(x + width, y + 0.0D, (double)this.zLevel).tex((double)((float)(textureX + width) * f), (double)((float)(textureY + 0.0D) * f1)).endVertex();
+        worldrenderer.pos(x + 0.0D, y + 0.0D, (double)this.zLevel).tex((double)((float)(textureX + 0.0D) * f), (double)((float)(textureY + 0.0D) * f1)).endVertex();
+        tessellator.draw();
+    }
+
+    public void drawTexturedModalRectFixed(double x, double y, double imageWidth, double imageHeight, double maxWidth, double maxHeight)
+    {
+        GL11.glPushMatrix();
+        double d0 = maxWidth / imageWidth;
+        double d1 = maxHeight / imageHeight;
+        GL11.glScaled(d0, d1, 0.0D);
+        this.drawTexturedModalRect(x / d0, y / d1, x / d0 + imageWidth, y / d1 + imageHeight);
+        GL11.glPopMatrix();
+    }
+
+    public void drawTexturedModalRectFixed(double x, double y, double texturePosX, double texturePosY, double imageWidth, double imageHeight, double maxWidth, double maxHeight)
+    {
+        GL11.glPushMatrix();
+        double d0 = maxWidth / imageWidth;
+        double d1 = maxHeight / imageHeight;
+        GL11.glScaled(d0, d1, 0.0D);
+        this.drawTexturedModalRectUV(x / d0, y / d1, texturePosX, texturePosY, x / d0 + imageWidth - x / d0, y / d1 + imageHeight - y / d1);
+        GL11.glPopMatrix();
     }
 }

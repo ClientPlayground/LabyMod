@@ -3,12 +3,14 @@ package net.minecraft.profiler;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import de.labystudio.modapi.ModAPI;
+import de.labystudio.modapi.events.RenderMainEvent;
 import de.labystudio.modapi.events.RenderWorldEvent;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 public class Profiler
 {
@@ -22,14 +24,6 @@ public class Profiler
     /** Current profiling section */
     private String profilingSection = "";
     private final Map<String, Long> profilingMap = Maps.<String, Long>newHashMap();
-
-    private void labymod(String p_labymod_1_)
-    {
-        if (p_labymod_1_.equals("outline") && ModAPI.enabled())
-        {
-            ModAPI.callEvent(new RenderWorldEvent());
-        }
-    }
 
     /**
      * Clear profiling.
@@ -161,7 +155,13 @@ public class Profiler
      */
     public void endStartSection(String name)
     {
-        this.labymod(name);
+        if (ModAPI.enabled() && name.equals("weather"))
+        {
+            ModAPI.callEvent(new RenderMainEvent());
+            ModAPI.callEvent(new RenderWorldEvent());
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        }
+
         this.endSection();
         this.startSection(name);
     }

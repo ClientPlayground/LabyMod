@@ -3,7 +3,6 @@ package de.labystudio.chat;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.packets.PacketMessage;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,32 +43,21 @@ public class SingleChat
         return this.messages;
     }
 
-    public void addMessage(final MessageChatComponent message)
+    public void addMessage(MessageChatComponent message)
     {
         Collections.reverse(this.messages);
         this.messages.add(message);
         Collections.reverse(this.messages);
-        (new Thread()
-        {
-            public void run()
-            {
-                try
-                {
-                    ChatHandler.getHandler().getConnection().prepareStatement("INSERT INTO single_chat_messages (single_chats_id, sender, sender_message, sent_time) VALUES (" + SingleChat.this.getId() + ", \'" + message.getSender() + "\', \'" + message.getMessage() + "\', " + System.currentTimeMillis() + ")").executeUpdate();
-                }
-                catch (SQLException sqlexception)
-                {
-                    sqlexception.printStackTrace();
-                }
-            }
-        }).start();
         message.setChat(this);
 
         if (message.getSender().equalsIgnoreCase(LabyMod.getInstance().getPlayerName()))
         {
             if (ConfigManager.settings.playSounds)
             {
-                Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.create(new ResourceLocation("random.pop"), 1.5F));
+                synchronized (Minecraft.getMinecraft())
+                {
+                    Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.create(new ResourceLocation("random.pop"), 1.5F));
+                }
             }
 
             if (!(message instanceof TitleChatComponent))

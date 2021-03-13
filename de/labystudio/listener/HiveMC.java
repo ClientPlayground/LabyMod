@@ -26,7 +26,7 @@ public class HiveMC
 
     public static boolean isHive()
     {
-        return isHive && ConfigManager.settings.gameHiveMC.booleanValue();
+        return isHive && ConfigManager.settings.gameHiveMC;
     }
 
     public static void serverHiveChat(String clean, String raw)

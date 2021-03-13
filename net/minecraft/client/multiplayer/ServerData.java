@@ -36,12 +36,12 @@ public class ServerData
     public String serverCommand = "";
     private boolean field_181042_l;
 
-    public ServerData(String p_i4_1_, String p_i4_2_, boolean p_i4_3_, String p_i4_4_)
+    public ServerData(String p_i5_1_, String p_i5_2_, boolean p_i5_3_, String p_i5_4_)
     {
-        this.serverName = p_i4_1_;
-        this.serverIP = p_i4_2_;
-        this.field_181042_l = p_i4_3_;
-        this.serverCommand = p_i4_4_;
+        this.serverName = p_i5_1_;
+        this.serverIP = p_i5_2_;
+        this.field_181042_l = p_i5_3_;
+        this.serverCommand = p_i5_4_;
     }
 
     public ServerData(String p_i46420_1_, String p_i46420_2_, boolean p_i46420_3_)

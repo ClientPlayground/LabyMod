@@ -6,17 +6,17 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.util.IChatComponent;
 
 public class ChatReceivedEvent extends Event
 {
     public static final Map<Listener, List<Method>> listenerMethods = new HashMap();
-    private String msg;
-    private String cleanMsg;
+    private boolean cancelled;
+    private IChatComponent component;
 
-    public ChatReceivedEvent(String msg, String cleanMsg)
+    public ChatReceivedEvent(IChatComponent component)
     {
-        this.msg = msg;
-        this.cleanMsg = cleanMsg;
+        this.component = component;
     }
 
     public Map<Listener, List<Method>> getListenerMethods()
@@ -24,13 +24,33 @@ public class ChatReceivedEvent extends Event
         return listenerMethods;
     }
 
-    public String getMsg()
+    public boolean isCancelled()
     {
-        return this.msg;
+        return this.cancelled;
+    }
+
+    public void setCancelled(boolean cancelled)
+    {
+        this.cancelled = cancelled;
+    }
+
+    public IChatComponent getComponent()
+    {
+        return this.component;
     }
 
     public String getCleanMsg()
     {
-        return this.cleanMsg;
+        return this.component.getUnformattedText();
+    }
+
+    public String getMsg()
+    {
+        return this.component.getFormattedText();
+    }
+
+    public void setComponent(IChatComponent component)
+    {
+        this.component = component;
     }
 }

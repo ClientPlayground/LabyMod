@@ -232,7 +232,6 @@ public abstract class Entity implements ICommandSender
 
     /** The command result statistics for this Entity. */
     private final CommandResultStats cmdResultStats;
-    boolean blocking = false;
 
     public int getEntityId()
     {
@@ -307,23 +306,20 @@ public abstract class Entity implements ICommandSender
     {
         if (this.worldObj != null)
         {
-            while (true)
+            while (this.posY > 0.0D && this.posY < 256.0D)
             {
-                if (this.posY > 0.0D && this.posY < 256.0D)
-                {
-                    this.setPosition(this.posX, this.posY, this.posZ);
+                this.setPosition(this.posX, this.posY, this.posZ);
 
-                    if (!this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox()).isEmpty())
-                    {
-                        ++this.posY;
-                        continue;
-                    }
+                if (this.worldObj.getCollidingBoundingBoxes(this, this.getEntityBoundingBox()).isEmpty())
+                {
+                    break;
                 }
 
-                this.motionX = this.motionY = this.motionZ = 0.0D;
-                this.rotationPitch = 0.0F;
-                break;
+                ++this.posY;
             }
+
+            this.motionX = this.motionY = this.motionZ = 0.0D;
+            this.rotationPitch = 0.0F;
         }
     }
 
@@ -1371,39 +1367,42 @@ public abstract class Entity implements ICommandSender
      */
     public void applyEntityCollision(Entity entityIn)
     {
-        if (entityIn.riddenByEntity != this && entityIn.ridingEntity != this && !entityIn.noClip && !this.noClip)
+        if (entityIn.riddenByEntity != this && entityIn.ridingEntity != this)
         {
-            double d0 = entityIn.posX - this.posX;
-            double d1 = entityIn.posZ - this.posZ;
-            double d2 = MathHelper.abs_max(d0, d1);
-
-            if (d2 >= 0.009999999776482582D)
+            if (!entityIn.noClip && !this.noClip)
             {
-                d2 = (double)MathHelper.sqrt_double(d2);
-                d0 = d0 / d2;
-                d1 = d1 / d2;
-                double d3 = 1.0D / d2;
+                double d0 = entityIn.posX - this.posX;
+                double d1 = entityIn.posZ - this.posZ;
+                double d2 = MathHelper.abs_max(d0, d1);
 
-                if (d3 > 1.0D)
+                if (d2 >= 0.009999999776482582D)
                 {
-                    d3 = 1.0D;
-                }
+                    d2 = (double)MathHelper.sqrt_double(d2);
+                    d0 = d0 / d2;
+                    d1 = d1 / d2;
+                    double d3 = 1.0D / d2;
 
-                d0 = d0 * d3;
-                d1 = d1 * d3;
-                d0 = d0 * 0.05000000074505806D;
-                d1 = d1 * 0.05000000074505806D;
-                d0 = d0 * (double)(1.0F - this.entityCollisionReduction);
-                d1 = d1 * (double)(1.0F - this.entityCollisionReduction);
+                    if (d3 > 1.0D)
+                    {
+                        d3 = 1.0D;
+                    }
 
-                if (this.riddenByEntity == null)
-                {
-                    this.addVelocity(-d0, 0.0D, -d1);
-                }
+                    d0 = d0 * d3;
+                    d1 = d1 * d3;
+                    d0 = d0 * 0.05000000074505806D;
+                    d1 = d1 * 0.05000000074505806D;
+                    d0 = d0 * (double)(1.0F - this.entityCollisionReduction);
+                    d1 = d1 * (double)(1.0F - this.entityCollisionReduction);
 
-                if (entityIn.riddenByEntity == null)
-                {
-                    entityIn.addVelocity(d0, 0.0D, d1);
+                    if (this.riddenByEntity == null)
+                    {
+                        this.addVelocity(-d0, 0.0D, -d1);
+                    }
+
+                    if (entityIn.riddenByEntity == null)
+                    {
+                        entityIn.addVelocity(d0, 0.0D, d1);
+                    }
                 }
             }
         }
@@ -2183,16 +2182,6 @@ public abstract class Entity implements ICommandSender
     public void setEating(boolean eating)
     {
         this.setFlag(4, eating);
-    }
-
-    public boolean isBlocking()
-    {
-        return this.blocking;
-    }
-
-    public void setBlocking(boolean p_setBlocking_1_)
-    {
-        this.blocking = p_setBlocking_1_;
     }
 
     /**

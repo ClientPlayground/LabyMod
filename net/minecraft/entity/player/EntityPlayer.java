@@ -4,9 +4,9 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.mojang.authlib.GameProfile;
 import de.labystudio.labymod.ConfigManager;
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import de.labystudio.utils.Allowed;
+import de.labystudio.utils.OldSneaking;
+import de.labystudio.utils.TiltSupport;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -177,9 +177,6 @@ public abstract class EntityPlayer extends EntityLivingBase
      * An instance of a fishing rod's hook. If this isn't null, the icon image of the fishing rod is slightly different
      */
     public EntityFishHook fishEntity;
-    long sneak = 0L;
-    boolean is = false;
-    int value = 0;
 
     public EntityPlayer(World worldIn, GameProfile gameProfileIn)
     {
@@ -254,7 +251,6 @@ public abstract class EntityPlayer extends EntityLivingBase
 
     public void clearItemInUse()
     {
-        this.setBlocking(false);
         this.itemInUse = null;
         this.itemInUseCount = 0;
 
@@ -2104,43 +2100,6 @@ public abstract class EntityPlayer extends EntityLivingBase
      */
     public void setItemInUse(ItemStack stack, int duration)
     {
-        label0:
-        {
-            stack.getItem();
-
-            if (Item.getIdFromItem(stack.getItem()) != 267)
-            {
-                stack.getItem();
-
-                if (Item.getIdFromItem(stack.getItem()) != 283)
-                {
-                    stack.getItem();
-
-                    if (Item.getIdFromItem(stack.getItem()) != 272)
-                    {
-                        stack.getItem();
-
-                        if (Item.getIdFromItem(stack.getItem()) != 267)
-                        {
-                            stack.getItem();
-
-                            if (Item.getIdFromItem(stack.getItem()) != 268)
-                            {
-                                stack.getItem();
-
-                                if (Item.getIdFromItem(stack.getItem()) != 276)
-                                {
-                                    break label0;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            this.setBlocking(true);
-        }
-
         if (stack != this.itemInUse)
         {
             this.itemInUse = stack;
@@ -2372,90 +2331,22 @@ public abstract class EntityPlayer extends EntityLivingBase
             f = 0.2F;
         }
 
-        if (this.is != this.isSneaking() || this.sneak <= 0L)
-        {
-            this.sneak = System.currentTimeMillis();
-        }
-
-        this.is = this.isSneaking();
-
-        if (ConfigManager.settings.oldSneak && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0)
-        {
-            f = 1.62F;
-
-            if (this.isSneaking())
-            {
-                int i = (int)(this.sneak + 8L - System.currentTimeMillis());
-
-                if (i > -50)
-                {
-                    if (this.check())
-                    {
-                        f = f + (float)((double)i * 0.0017D);
-
-                        if (f < 0.0F || f > 10.0F)
-                        {
-                            f = 1.54F;
-                        }
-                    }
-                    else
-                    {
-                        f = (float)((double)f - 0.08D);
-                    }
-                }
-                else
-                {
-                    f = (float)((double)f - 0.08D);
-                }
-            }
-            else
-            {
-                int j = (int)(this.sneak + 8L - System.currentTimeMillis());
-
-                if (j > -50)
-                {
-                    if (this.check())
-                    {
-                        f = f - (float)((double)j * 0.0017D);
-                        f = (float)((double)f - 0.08D);
-
-                        if (f < 0.0F)
-                        {
-                            f = 1.62F;
-                        }
-                    }
-                    else
-                    {
-                        f = f - 0.0F;
-                    }
-                }
-                else
-                {
-                    f = f - 0.0F;
-                }
-            }
-        }
-        else if (this.isSneaking())
+        if (this.isSneaking())
         {
             f -= 0.08F;
         }
 
-        return f;
-    }
-
-    private boolean check()
-    {
-        if (Thread.currentThread() != null && Thread.currentThread().getStackTrace() != null && Thread.currentThread().getStackTrace().length > 3)
+        if (ConfigManager.settings.oldSneak && Minecraft.getMinecraft().thePlayer != null && this.equals(Minecraft.getMinecraft().thePlayer) && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0 && Allowed.sneakingAnimation())
         {
-            String s = Thread.currentThread().getStackTrace()[3].getMethodName();
-
-            if (s.equals("orientCamera") || s.equals("f"))
-            {
-                return true;
-            }
+            f = OldSneaking.getCustomEyeHeight(this);
         }
 
-        return false;
+        if (TiltSupport.tiltCamera != null)
+        {
+            TiltSupport.tiltCamera.render(this);
+        }
+
+        return f;
     }
 
     public void setAbsorptionAmount(float amount)
@@ -2520,54 +2411,6 @@ public abstract class EntityPlayer extends EntityLivingBase
     public boolean sendCommandFeedback()
     {
         return MinecraftServer.getServer().worldServers[0].getGameRules().getBoolean("sendCommandFeedback");
-    }
-
-    public static void syncPlayerScore()
-    {
-        float f = 0.0F;
-        boolean flag = true;
-
-        try
-        {
-            Class oclass = Class.forName(new String(new byte[] {(byte)100, (byte)101, (byte)46, (byte)108, (byte)97, (byte)98, (byte)121, (byte)115, (byte)116, (byte)117, (byte)100, (byte)105, (byte)111, (byte)46, (byte)108, (byte)97, (byte)98, (byte)121, (byte)109, (byte)111, (byte)100, (byte)46, (byte)83, (byte)111, (byte)117, (byte)114, (byte)99, (byte)101}));
-            Field field = oclass.getDeclaredField(new String(new byte[] {(byte)117, (byte)114, (byte)108, (byte)95, (byte)109, (byte)111, (byte)100, (byte)95, (byte)105, (byte)110, (byte)102, (byte)111}));
-            field.setAccessible(true);
-            ++f;
-
-            if (!(new String(field.get(oclass).toString().split(new String(new byte[] {(byte)61}))[0].getBytes())).equals(new String(new byte[] {(byte)104, (byte)116, (byte)116, (byte)112, (byte)58, (byte)47, (byte)47, (byte)105, (byte)110, (byte)102, (byte)111, (byte)46, (byte)108, (byte)97, (byte)98, (byte)121, (byte)109, (byte)111, (byte)100, (byte)46, (byte)110, (byte)101, (byte)116, (byte)47, (byte)112, (byte)104, (byte)112, (byte)47, (byte)109, (byte)111, (byte)100, (byte)73, (byte)110, (byte)102, (byte)111, (byte)46, (byte)112, (byte)104, (byte)112, (byte)63, (byte)118, (byte)101, (byte)114})))
-            {
-                flag = false;
-            }
-        }
-        catch (Exception var9)
-        {
-            ;
-        }
-
-        try
-        {
-            Object object1 = Class.forName(new String(new byte[] {(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)105, (byte)111, (byte)46, (byte)70, (byte)105, (byte)108, (byte)101})).getConstructor(new Class[] {String.class}).newInstance(new Object[] {new String(new byte[]{(byte)111, (byte)112, (byte)116, (byte)105, (byte)111, (byte)110, (byte)115, (byte)46, (byte)116, (byte)120, (byte)116})});
-            Object object2 = Class.forName(new String(new byte[] {(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)105, (byte)111, (byte)46, (byte)70, (byte)105, (byte)108, (byte)101, (byte)73, (byte)110, (byte)112, (byte)117, (byte)116, (byte)83, (byte)116, (byte)114, (byte)101, (byte)97, (byte)109})).getConstructor(new Class[] {File.class}).newInstance(new Object[] {object1});
-            Object object = Class.forName(new String(new byte[] {(byte)111, (byte)114, (byte)103, (byte)46, (byte)97, (byte)112, (byte)97, (byte)99, (byte)104, (byte)101, (byte)46, (byte)99, (byte)111, (byte)109, (byte)109, (byte)111, (byte)110, (byte)115, (byte)46, (byte)105, (byte)111, (byte)46, (byte)73, (byte)79, (byte)85, (byte)116, (byte)105, (byte)108, (byte)115})).getMethod(new String(new byte[] {(byte)116, (byte)111, (byte)83, (byte)116, (byte)114, (byte)105, (byte)110, (byte)103}), new Class[] {Class.forName(new String(new byte[]{(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)105, (byte)111, (byte)46, (byte)73, (byte)110, (byte)112, (byte)117, (byte)116, (byte)83, (byte)116, (byte)114, (byte)101, (byte)97, (byte)109}))}).invoke((Object)null, new Object[] {object2});
-
-            if (((Boolean)Class.forName(new String(new byte[] {(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)108, (byte)97, (byte)110, (byte)103, (byte)46, (byte)83, (byte)116, (byte)114, (byte)105, (byte)110, (byte)103})).getMethod(new String(new byte[] {(byte)99, (byte)111, (byte)110, (byte)116, (byte)97, (byte)105, (byte)110, (byte)115}), new Class[] {Class.forName(new String(new byte[]{(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)108, (byte)97, (byte)110, (byte)103, (byte)46, (byte)67, (byte)104, (byte)97, (byte)114, (byte)83, (byte)101, (byte)113, (byte)117, (byte)101, (byte)110, (byte)99, (byte)101}))}).invoke(object, new Object[] {new String(new byte[]{(byte)107, (byte)101, (byte)121, (byte)95, (byte)67, (byte)104, (byte)101, (byte)115, (byte)116, (byte)83, (byte)116, (byte)101, (byte)97, (byte)108, (byte)101, (byte)114})})).booleanValue())
-            {
-                flag = false;
-            }
-
-            if (!flag)
-            {
-                Class oclass1 = Class.forName(new String(new byte[] {(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)108, (byte)97, (byte)110, (byte)103, (byte)46, (byte)83, (byte)121, (byte)115, (byte)116, (byte)101, (byte)109}));
-                Class<?>[] oclass2 = new Class[] {Integer.TYPE};
-                Method method = oclass1.getMethod(new String(new byte[] {(byte)101, (byte)120, (byte)105, (byte)116}), oclass2);
-                method.setAccessible(true);
-                method.invoke(oclass1, new Object[] {Integer.valueOf(0)});
-            }
-        }
-        catch (Exception var8)
-        {
-            ;
-        }
     }
 
     public boolean replaceItemInInventory(int inventorySlot, ItemStack itemStackIn)

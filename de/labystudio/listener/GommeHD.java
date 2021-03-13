@@ -9,8 +9,12 @@ import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.ModGui;
 import java.util.ArrayList;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.BlockPos;
 
 public class GommeHD
 {
@@ -18,11 +22,14 @@ public class GommeHD
     public static String gommeHDServer_BW_Team = "";
     public static boolean gommeHDServer_BW_Bed = true;
     public static int elapsedTime;
+    public static String skyBlockOwner = null;
+    private static long stoppedBedLong = 0L;
+    private static int stoppedBedPercent = 0;
     public static boolean isGommeHD = false;
 
     public static void updateGommeHD()
     {
-        isGommeHD = LabyMod.getInstance().ip.toLowerCase().contains("gommehd.net");
+        isGommeHD = LabyMod.getInstance().ip.toLowerCase().contains("gommehd.net") || LabyMod.getInstance().ip.toLowerCase().contains("gommehd.com");
     }
 
     public static boolean isGommeHD()
@@ -35,6 +42,7 @@ public class GommeHD
         gommeHDServer_BW = false;
         gommeHDServer_BW_Team = "";
         gommeHDServer_BW_Bed = true;
+        skyBlockOwner = null;
         GommeHDBed.reset();
     }
 
@@ -45,7 +53,7 @@ public class GommeHD
             ++elapsedTime;
         }
 
-        if (LabyMod.getInstance().header != null && LabyMod.getInstance().header.toString().contains("Lobby"))
+        if (LabyMod.getInstance().header != null && LabyMod.getInstance().header.getFormattedText().contains("Lobby"))
         {
             resetGommeHD();
         }
@@ -57,9 +65,9 @@ public class GommeHD
         {
             String s = "[NICK] ";
 
-            if (clean.startsWith(s + "Du spielst als: "))
+            if (clean.startsWith(s + "Du spielst als: ") || clean.startsWith(s + "Aktueller Nickname: "))
             {
-                LabyMod.getInstance().nickname = clean.replace(s + "Du spielst als: ", "");
+                LabyMod.getInstance().nickname = clean.replace(s + "Du spielst als: ", "").replace(s + "Aktueller Nickname: ", "");
             }
 
             if (clean.startsWith(s + "Dein Nickname wurde entfernt"))
@@ -235,12 +243,22 @@ public class GommeHD
         {
             LabyMod.getInstance().sendCommand("hub");
         }
+
+        if (clean.startsWith("Du betrittst nun die Insel von: "))
+        {
+            skyBlockOwner = clean.replace("Du betrittst nun die Insel von: ", "");
+        }
     }
 
     public static void drawGommeHDGui()
     {
-        if (ConfigManager.settings.gameGommeHD.booleanValue())
+        if (ConfigManager.settings.gameGommeHD)
         {
+            if (ConfigManager.settings.skyblock && skyBlockOwner != null)
+            {
+                ModGui.addMainLabel("Island", skyBlockOwner, ModGui.mainList);
+            }
+
             if (gommeHDServer_BW)
             {
                 if (!gommeHDServer_BW_Team.isEmpty())
@@ -264,9 +282,59 @@ public class GommeHD
                         ModGui.addMainLabel("Bed", s + "", ModGui.mainList);
                     }
 
-                    if (ConfigManager.settings.showBWTimer.booleanValue())
+                    if (ConfigManager.settings.showBWTimer)
                     {
                         drawTimer();
+                    }
+                }
+
+                if (ConfigManager.settings.gommeBedTimer || ConfigManager.settings.gommeBeaconTimer)
+                {
+                    boolean flag = false;
+                    WorldClient worldclient = Minecraft.getMinecraft().theWorld;
+
+                    if (worldclient != null && Minecraft.getMinecraft().objectMouseOver != null)
+                    {
+                        BlockPos blockpos = Minecraft.getMinecraft().objectMouseOver.getBlockPos();
+
+                        if (blockpos != null)
+                        {
+                            IBlockState iblockstate = worldclient.getBlockState(blockpos);
+
+                            if (iblockstate != null)
+                            {
+                                Item item = iblockstate.getBlock().getItem(worldclient, blockpos);
+                                flag = item != null && (ConfigManager.settings.gommeBedTimer && item == Item.getItemById(355) || ConfigManager.settings.gommeBeaconTimer && item == Item.getItemById(138));
+                            }
+                        }
+                    }
+
+                    if (Minecraft.getMinecraft().playerController.curBlockDamageMP != 0.0F && flag)
+                    {
+                        stoppedBedPercent = (int)(Minecraft.getMinecraft().playerController.curBlockDamageMP * 100.0F);
+                        stoppedBedLong = System.currentTimeMillis() + 3000L;
+                    }
+
+                    if (stoppedBedLong > System.currentTimeMillis())
+                    {
+                        if (Minecraft.getMinecraft().playerController.blockHitDelay != 0)
+                        {
+                            stoppedBedPercent = 100;
+                        }
+
+                        if (stoppedBedPercent != 0 && (Minecraft.getMinecraft().playerController.blockHitDelay == 0 || stoppedBedPercent == 100))
+                        {
+                            LabyMod.getInstance().draw.drawCenteredString(Color.cl("a") + stoppedBedPercent + "% ", (double)(LabyMod.getInstance().draw.getWidth() / 2 + 3), (double)(LabyMod.getInstance().draw.getHeight() / 2 - 10), 1.0D);
+                        }
+                    }
+                    else
+                    {
+                        stoppedBedPercent = 0;
+
+                        if (Minecraft.getMinecraft().playerController.blockHitDelay != 0 && flag)
+                        {
+                            LabyMod.getInstance().draw.drawCenteredString(Color.cl("c") + Minecraft.getMinecraft().playerController.blockHitDelay, (double)(LabyMod.getInstance().draw.getWidth() / 2 + 1), (double)(LabyMod.getInstance().draw.getHeight() / 2 - 10), 1.0D);
+                        }
                     }
                 }
             }

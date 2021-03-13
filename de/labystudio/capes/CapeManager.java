@@ -3,7 +3,6 @@ package de.labystudio.capes;
 import de.labystudio.capes.downloader.ThreadDownloadCapeData;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
 import de.labystudio.utils.Debug;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
@@ -25,36 +24,34 @@ public class CapeManager
 {
     private ArrayList<String> userCapes = new ArrayList();
 
-    public void downloadCape(final AbstractClientPlayer player, boolean refresh, final boolean invert)
+    public int countUserCapes()
     {
-        if (player != null)
+        return this.userCapes.size();
+    }
+
+    public void downloadCape(final AbstractClientPlayer player, boolean refresh, final boolean optifine)
+    {
+        if (player != null && ConfigManager.settings.capes)
         {
             String s = player.getNameClear();
 
             if (s != null && !s.isEmpty() && player.getUniqueID() != null)
             {
-                final EnumCapePriority enumcapepriority = this.getCapePriority();
                 String s1 = null;
 
-                if (enumcapepriority == EnumCapePriority.OPTIFINE || invert && enumcapepriority == EnumCapePriority.LABYMOD)
+                if (optifine)
                 {
-                    s1 = Source.url_cape_optifine + s + ".png";
+                    s1 = "http://s.optifine.net/capes/" + s + ".png";
                 }
-
-                if ((enumcapepriority == EnumCapePriority.LABYMOD || invert && enumcapepriority == EnumCapePriority.OPTIFINE) && this.isWhitelisted(player.getUniqueID()))
+                else
                 {
-                    s1 = Source.url_cape_labymod + player.getUniqueID();
-                }
-
-                if (s1 == null)
-                {
-                    if (invert)
+                    if (!this.isWhitelisted(player.getUniqueID()))
                     {
+                        this.downloadCape(player, false, true);
                         return;
                     }
 
-                    this.downloadCape(player, false, true);
-                    return;
+                    s1 = "http://capes.labymod.net/capes/" + player.getUniqueID();
                 }
 
                 String s2 = FilenameUtils.getBaseName(s1);
@@ -70,7 +67,7 @@ public class CapeManager
                     {
                         if (threaddownloadcapedata.imageFound.booleanValue())
                         {
-                            player.setLocationOfCape(resourcelocation, enumcapepriority);
+                            player.setLocationOfCape(resourcelocation, optifine);
                         }
 
                         return;
@@ -86,14 +83,14 @@ public class CapeManager
                     }
                     public void skinAvailable()
                     {
-                        player.setLocationOfCape(resourcelocation, enumcapepriority);
+                        player.setLocationOfCape(resourcelocation, optifine);
                     }
                 };
                 CapeCallback capecallback = new CapeCallback()
                 {
                     public void failed(String error)
                     {
-                        if (!invert)
+                        if (!optifine)
                         {
                             CapeManager.this.downloadCape(player, false, true);
                         }
@@ -102,7 +99,7 @@ public class CapeManager
                     {
                     }
                 };
-                ThreadDownloadCapeData threaddownloadcapedata1 = new ThreadDownloadCapeData((File)null, s1, (ResourceLocation)null, iimagebuffer, capecallback);
+                ThreadDownloadCapeData threaddownloadcapedata1 = new ThreadDownloadCapeData((File)null, s1, resourcelocation, iimagebuffer, capecallback);
                 texturemanager.loadTexture(resourcelocation, threaddownloadcapedata1);
             }
         }
@@ -133,19 +130,9 @@ public class CapeManager
 
     public boolean isWhitelisted(UUID uuid)
     {
-        Debug.debug(Debug.EnumDebugMode.CAPES, "Is whitelisted? " + uuid);
-
-        for (String s : this.userCapes)
-        {
-            if (s != null && uuid.toString().startsWith(s) && !s.isEmpty())
-            {
-                Debug.debug(Debug.EnumDebugMode.CAPES, "IS WHITELISTED because " + uuid.toString() + " starts with " + s);
-                return true;
-            }
-        }
-
-        Debug.debug(Debug.EnumDebugMode.CAPES, "skip..");
-        return false;
+        boolean flag = this.userCapes.contains(uuid.toString().split("-")[0]);
+        Debug.debug(flag ? uuid.toString() + " is whitelisted!" : "skipping cape of " + uuid.toString());
+        return flag;
     }
 
     public void refresh()
@@ -167,10 +154,5 @@ public class CapeManager
 
             System.out.println("[LabyMod] Refreshed " + i + " mod capes");
         }
-    }
-
-    public EnumCapePriority getCapePriority()
-    {
-        return ConfigManager.settings.capePriority.equals("of") ? EnumCapePriority.OPTIFINE : (ConfigManager.settings.capePriority.equals("original") ? EnumCapePriority.ORIGINAL : EnumCapePriority.LABYMOD);
     }
 }

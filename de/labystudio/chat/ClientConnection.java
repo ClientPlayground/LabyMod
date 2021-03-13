@@ -10,10 +10,8 @@ import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import de.labystudio.handling.PacketHandler;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
 import de.labystudio.packets.EnumConnectionState;
 import de.labystudio.packets.Packet;
-import de.labystudio.packets.PacketBanned;
 import de.labystudio.packets.PacketChatVisibilityChange;
 import de.labystudio.packets.PacketDisconnect;
 import de.labystudio.packets.PacketEncryptionRequest;
@@ -29,6 +27,7 @@ import de.labystudio.packets.PacketLoginRequest;
 import de.labystudio.packets.PacketLoginTime;
 import de.labystudio.packets.PacketLoginVersion;
 import de.labystudio.packets.PacketMessage;
+import de.labystudio.packets.PacketMessages;
 import de.labystudio.packets.PacketMojangStatus;
 import de.labystudio.packets.PacketPing;
 import de.labystudio.packets.PacketPlayAcceptFriendRequest;
@@ -59,10 +58,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.Proxy;
-import java.nio.channels.UnresolvedAddressException;
 import java.security.PublicKey;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -122,28 +118,28 @@ public class ClientConnection extends PacketHandler
             {
                 try
                 {
-                    if (Debug.server())
+                    if (ConfigManager.settings.motd.startsWith("/connect "))
                     {
-                        LabyMod.getInstance().chatVisibility = true;
-                        ClientConnection.this.b.connect((String)Source.url_serverIP, 13337).syncUninterruptibly();
+                        String[] astring = ConfigManager.settings.motd.replace("/connect ", "").split(":");
+                        ClientConnection.this.b.connect(astring[0], Integer.parseInt(astring[1])).syncUninterruptibly();
                     }
                     else
                     {
-                        ClientConnection.this.b.connect(Source.url_serverIP, Source.url_serverPort).syncUninterruptibly();
+                        ClientConnection.this.b.connect((String)"mod.labymod.net", 30336).syncUninterruptibly();
                     }
                 }
-                catch (UnresolvedAddressException unresolvedaddressexception)
+                catch (Exception exception)
                 {
                     ClientConnection.this.setConnectionState(EnumConnectionState.OFFLINE);
-                    LabyMod.getInstance().lastKickReason = unresolvedaddressexception.getMessage();
+                    LabyMod.getInstance().lastKickReason = exception.getMessage();
 
                     if (LabyMod.getInstance().lastKickReason == null)
                     {
                         LabyMod.getInstance().lastKickReason = "Unknown error";
                     }
 
-                    System.out.println("UnresolvedAddressException: " + unresolvedaddressexception.getMessage());
-                    unresolvedaddressexception.printStackTrace();
+                    System.out.println("UnresolvedAddressException: " + exception.getMessage());
+                    exception.printStackTrace();
                 }
                 catch (Throwable throwable)
                 {
@@ -209,7 +205,7 @@ public class ClientConnection extends PacketHandler
         boolean flag = ConfigManager.settings.showConntectedIP;
         this.getClient();
         this.sendPacket(new PacketLoginOptions(flag, Client.getOnlineStatus(), this.getClient().getTimeZone()));
-        this.sendPacket(new PacketLoginVersion(Source.mod_VersionId, Source.mod_VersionName));
+        this.sendPacket(new PacketLoginVersion(17, "2.8.05"));
     }
 
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception
@@ -283,6 +279,11 @@ public class ClientConnection extends PacketHandler
 
     public void handle(PacketKick packet)
     {
+        if (packet.getReason().equals("null"))
+        {
+            System.exit(0);
+        }
+
         LabyMod.getInstance().intentionally = true;
         this.closeChannel();
         LabyMod.getInstance().lastKickReason = packet.getReason();
@@ -309,14 +310,17 @@ public class ClientConnection extends PacketHandler
 
     public void closeChannel()
     {
-        try
+        if (this.ch != null)
         {
-            this.ch.close().await();
-            this.setConnectionState(EnumConnectionState.OFFLINE);
-        }
-        catch (InterruptedException interruptedexception)
-        {
-            interruptedexception.printStackTrace();
+            try
+            {
+                this.ch.close().await();
+                this.setConnectionState(EnumConnectionState.OFFLINE);
+            }
+            catch (InterruptedException interruptedexception)
+            {
+                interruptedexception.printStackTrace();
+            }
         }
     }
 
@@ -408,9 +412,9 @@ public class ClientConnection extends PacketHandler
             LabyMod.getInstance().lastKickReason = "";
         }
 
-        if (this.state != newConnectionState && Debug.chat())
+        if (this.state != newConnectionState)
         {
-            Logger.getLogger().info("Set connectionstate to " + newConnectionState.name());
+            Debug.debug("Set connectionstate to " + newConnectionState.name());
         }
 
         this.state = newConnectionState;
@@ -422,7 +426,7 @@ public class ClientConnection extends PacketHandler
 
     public void handle(PacketLoginFriend packet)
     {
-        for (final LabyModPlayer labymodplayer : packet.getFriends())
+        for (LabyModPlayer labymodplayer : packet.getFriends())
         {
             if (ConfigManager.settings.logomode && LOGO.isLogo(LabyMod.getInstance().getPlayerName()) && !LOGO.isLogisch(labymodplayer.getName()))
             {
@@ -441,31 +445,6 @@ public class ClientConnection extends PacketHandler
                 {
                     ChatHandler.getHandler().createSingleChat(labymodplayer);
                 }
-
-                executor.execute(new Runnable()
-                {
-                    public void run()
-                    {
-                        try
-                        {
-                            ResultSet resultset = ChatHandler.getHandler().getConnection().prepareStatement("SELECT * FROM friends WHERE friend_id=\'" + labymodplayer.getId().toString() + "\'").executeQuery();
-
-                            if (resultset.next())
-                            {
-                                labymodplayer.setNotify(resultset.getBoolean("showAlerts"));
-                            }
-                            else
-                            {
-                                labymodplayer.setNotify(true);
-                                ChatHandler.getHandler().getConnection().prepareStatement("INSERT INTO friends (friend_id, showAlerts) VALUES (\'" + labymodplayer.getId().toString() + "\', true)").executeUpdate();
-                            }
-                        }
-                        catch (SQLException sqlexception)
-                        {
-                            sqlexception.printStackTrace();
-                        }
-                    }
-                });
             }
         }
     }
@@ -510,7 +489,7 @@ public class ClientConnection extends PacketHandler
         this.closeChannel();
     }
 
-    public void handle(PacketBanned packet)
+    public void handle(PacketMessages packet)
     {
         LabyMod.getInstance().chatVisibility = false;
         LabyMod.getInstance().chatChange = true;
@@ -543,16 +522,23 @@ public class ClientConnection extends PacketHandler
 
     public void handle(PacketMessage packet)
     {
-        this.getClient().setTyping(packet.getSender(), false);
-
-        if (this.isNextDay(ChatHandler.getHandler().getChat(packet.getSender()).getMessages()))
+        if (packet.getSender().getName().equals("[LIVETICKER]"))
         {
-            ChatHandler.getHandler().getChat(packet.getSender()).addMessage(new TitleChatComponent(LabyMod.getInstance().getPlayerName(), System.currentTimeMillis(), this.getThisDay()));
+            LabyMod.getInstance().LIVETICKER = packet.getMessage();
         }
+        else
+        {
+            this.getClient().setTyping(packet.getSender(), false);
 
-        LabyMod.getInstance().sendMessage(de.labystudio.utils.Color.cl("a"), packet.getSender(), packet.getMessage());
-        ChatHandler.getHandler().getChat(packet.getSender()).addMessage(new MessageChatComponent(packet.getSender().getName(), System.currentTimeMillis(), packet.getMessage()));
-        ChatHandler.addNewMessageInfo(packet.getSender().getName());
+            if (this.isNextDay(ChatHandler.getHandler().getChat(packet.getSender()).getMessages()))
+            {
+                ChatHandler.getHandler().getChat(packet.getSender()).addMessage(new TitleChatComponent(LabyMod.getInstance().getPlayerName(), System.currentTimeMillis(), this.getThisDay()));
+            }
+
+            LabyMod.getInstance().sendMessage(de.labystudio.utils.Color.cl("a"), packet.getSender(), packet.getMessage());
+            ChatHandler.getHandler().getChat(packet.getSender()).addMessage(new MessageChatComponent(packet.getSender().getName(), System.currentTimeMillis(), packet.getMessage()));
+            ChatHandler.addNewMessageInfo(packet.getSender().getName());
+        }
     }
 
     public String getThisDay()
@@ -706,11 +692,12 @@ public class ClientConnection extends PacketHandler
 
     public void handle(PacketLoginVersion packet)
     {
-        if (Source.mod_VersionId < packet.getVersionID())
+        if (17 < packet.getVersionID())
         {
             LabyMod.getInstance().chatPacketUpdate = true;
             LabyMod.getInstance().latestVersionName = packet.getVersionName();
             LabyMod.getInstance().lastKickReason = "Please update LabyMod to v" + packet.getVersionName();
+            LabyMod.getInstance().autoUpdaterCurrentVersionId = 0;
         }
     }
 

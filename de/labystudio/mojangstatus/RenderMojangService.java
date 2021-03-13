@@ -18,9 +18,9 @@ public class RenderMojangService
             GlStateManager.pushMatrix();
             int i = 0;
 
-            for (Object s0 : new ArrayList(LabyMod.getInstance().mojangStatus.keySet()))
+            for (Object s10 : new ArrayList(LabyMod.getInstance().mojangStatus.keySet()))
             {
-                String s = (String) s0;
+            	String s = (String)s10;
                 ServiceStatus servicestatus = (ServiceStatus)LabyMod.getInstance().mojangStatus.get(s);
                 float f = (float)((double)((System.currentTimeMillis() + (long)(i * 4)) % 1000L) * 0.1D) / 10.0F;
 

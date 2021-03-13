@@ -6,7 +6,6 @@ import de.labystudio.listener.Hypixel;
 import de.labystudio.listener.JumpLeague;
 import de.labystudio.listener.Revayd;
 import de.labystudio.listener.Rewinside;
-import de.labystudio.listener.Servers;
 import de.labystudio.listener.Timolia;
 import de.labystudio.modapi.ModManager;
 import net.minecraft.client.Minecraft;
@@ -20,6 +19,7 @@ public class Allowed
     static boolean chat = true;
     static boolean extras = true;
     static boolean animations = true;
+    static boolean sneakingAnimation = false;
     static boolean potions = true;
     static boolean armor = true;
 
@@ -30,9 +30,7 @@ public class Allowed
         JumpLeague.updatePlayMinity();
         Revayd.updateRevayd();
         Rewinside.updateRewinside();
-        Servers.updateDeinProjektHost();
         Timolia.updateTimolia();
-        Servers.updateMineVerse();
         HiveMC.updateHiveMC();
         food = true;
         gui = true;
@@ -43,11 +41,12 @@ public class Allowed
         animations = true;
         potions = true;
         armor = true;
+        sneakingAnimation = false;
     }
 
     public static boolean foodSaturation()
     {
-        return !Timolia.isTimolia() && !Servers.isDeinProjektHost() && food;
+        return !Timolia.isTimolia() && food;
     }
 
     public static boolean gui()
@@ -57,7 +56,7 @@ public class Allowed
 
     public static boolean nick()
     {
-        return !Revayd.isRevayd() && !Hypixel.isHypixel() && !Servers.isDeinProjektHost() && nick;
+        return !Revayd.isRevayd() && !Hypixel.isHypixel() && nick;
     }
 
     public static boolean blockBuild()
@@ -67,27 +66,32 @@ public class Allowed
 
     public static boolean chat()
     {
-        return !Servers.isDeinProjektHost() && !Servers.isMineVerse() && chat;
+        return chat;
     }
 
     public static boolean unfairExtra()
     {
-        return !Servers.isDeinProjektHost() && extras;
+        return extras;
     }
 
     public static boolean animations()
     {
-        return !Servers.isDeinProjektHost() && animations;
+        return animations;
+    }
+
+    public static boolean sneakingAnimation()
+    {
+        return GommeHD.isGommeHD() || Minecraft.getMinecraft().isSingleplayer() || sneakingAnimation;
     }
 
     public static boolean potions()
     {
-        return !Servers.isDeinProjektHost() && potions;
+        return potions;
     }
 
     public static boolean armorHud()
     {
-        return !Servers.isDeinProjektHost() && armor;
+        return armor;
     }
 
     public static void set(String key, boolean value)
@@ -127,6 +131,11 @@ public class Allowed
         if (key.equalsIgnoreCase("animations"))
         {
             animations = value;
+        }
+
+        if (key.equalsIgnoreCase("sneakinganimations"))
+        {
+            sneakingAnimation = value;
         }
 
         if (key.equalsIgnoreCase("potions"))

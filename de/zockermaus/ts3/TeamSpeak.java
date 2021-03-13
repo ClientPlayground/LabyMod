@@ -1,7 +1,6 @@
 package de.zockermaus.ts3;
 
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.Utils;
 import java.util.ArrayList;
@@ -31,11 +30,9 @@ public class TeamSpeak
 
     public static void enable()
     {
-        Timings.start("Enable TeamSpeak");
         setupChat();
         new TeamSpeakController(new TeamSpeakListener());
         overlayWindows = new TeamSpeakOverlayWindow();
-        Timings.stop("Enable TeamSpeak");
     }
 
     public static void setupChat()

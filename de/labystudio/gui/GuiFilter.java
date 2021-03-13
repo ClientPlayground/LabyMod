@@ -1,5 +1,6 @@
 package de.labystudio.gui;
 
+import de.labystudio.gui.extras.GuiCustomButton;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
@@ -36,9 +37,9 @@ public class GuiFilter extends GuiScreen
 
     public void addSymbol(String symbol)
     {
-        GuiButton guibutton = new GuiButton(-1, this.width - 4 - 20 - this.z, 4 + this.y, 20, 20, symbol);
-        guibutton.run = "true";
-        this.buttonList.add(guibutton);
+        GuiCustomButton guicustombutton = new GuiCustomButton(-1, this.width - 4 - 20 - this.z, 4 + this.y, 20, 20, symbol);
+        guicustombutton.run = "true";
+        this.buttonList.add(guicustombutton);
         this.z += 24;
 
         if (this.z % (24 * this.lines) == 0)
@@ -54,10 +55,10 @@ public class GuiFilter extends GuiScreen
 
         for (String s : FilterLoader.filters)
         {
-            GuiButton guibutton = new GuiButton(-3, 0, 0, 20, 20, Color.cl("c") + "X");
-            guibutton.run = s;
-            this.buttonList.add(guibutton);
-            this.buttons.add(guibutton);
+            GuiCustomButton guicustombutton = new GuiCustomButton(-3, 0, 0, 20, 20, Color.cl("c") + "X");
+            guicustombutton.run = s;
+            this.buttonList.add(guicustombutton);
+            this.buttons.add(guicustombutton);
         }
     }
 
@@ -70,13 +71,13 @@ public class GuiFilter extends GuiScreen
         {
             if (j < this.buttons.size())
             {
-                GuiButton guibutton = (GuiButton)this.buttons.get(j);
-                guibutton.visible = 6 + i > 15 && 6 + i < 160;
+                GuiCustomButton guicustombutton = (GuiCustomButton)this.buttons.get(j);
+                guicustombutton.visible = 6 + i > 15 && 6 + i < 160;
 
-                if (guibutton.visible)
+                if (guicustombutton.visible)
                 {
-                    guibutton.xPosition = this.width - 190;
-                    guibutton.yPosition = 6 + i;
+                    guicustombutton.xPosition = this.width - 190;
+                    guicustombutton.yPosition = 6 + i;
                     DrawUtils drawutils = this.draw;
                     DrawUtils.drawRect(this.width - 170, 6 + i, this.width - 7, 6 + i + 20, Integer.MIN_VALUE);
                     this.draw.drawString(s.replace("%b%", " | " + Color.cl("c")).replace("%k%", Color.cl("6") + "").replace("%s%", Color.cl("b") + " (Sound) "), (double)(this.width - 167), (double)(12 + i));
@@ -242,6 +243,7 @@ public class GuiFilter extends GuiScreen
         this.inputField.setEnableBackgroundDrawing(false);
         this.inputField.setFocused(true);
         this.inputField.setText(this.text);
+        this.inputField.setCursorPositionEnd();
         this.input = new GuiTextField(0, this.fontRendererObj, this.width - 160, 6, 110, 17);
         this.input.setMaxStringLength(500);
         this.input.setFocused(false);
@@ -273,17 +275,20 @@ public class GuiFilter extends GuiScreen
             this.inputField.textboxKeyTyped(button.displayString.replace(Color.c + "", "").substring(0, 1).charAt(0), 0);
         }
 
-        if (button.run.equals("true"))
+        if (button instanceof GuiCustomButton)
         {
-            this.inputField.textboxKeyTyped(button.displayString.charAt(0), 0);
-        }
+            if (((GuiCustomButton)button).run.equals("true"))
+            {
+                this.inputField.textboxKeyTyped(button.displayString.charAt(0), 0);
+            }
 
-        if (button.id == -3)
-        {
-            FilterLoader.filters.remove(button.run);
-            this.buttons.remove(button);
-            this.initGui();
-            FilterLoader.saveFilters();
+            if (button.id == -3)
+            {
+                FilterLoader.filters.remove(((GuiCustomButton)button).run);
+                this.buttons.remove(button);
+                this.initGui();
+                FilterLoader.saveFilters();
+            }
         }
     }
 
@@ -366,7 +371,7 @@ public class GuiFilter extends GuiScreen
     {
         for (String s1 : FilterLoader.filters)
         {
-            if (s1.equalsIgnoreCase(s1))
+            if (s1.equalsIgnoreCase(s))
             {
                 return true;
             }

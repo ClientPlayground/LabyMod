@@ -2,7 +2,6 @@ package de.labystudio.utils;
 
 import com.google.common.base.Charsets;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
@@ -107,7 +106,7 @@ public class TextureManager
 
     public void drawServerIcon(String ip, double x, double y, double size)
     {
-        String s = Source.url_favicon + ip;
+        String s = "http://craftapi.com/api/server/favicon/" + ip;
 
         if (this.images.containsKey(s))
         {
@@ -160,7 +159,7 @@ public class TextureManager
         {
             this.loading.add(playerName);
             ResourceLocation resourcelocation = new ResourceLocation("images/" + playerName);
-            ThreadDownloadImageData threaddownloadimagedata = new ThreadDownloadImageData((File)null, String.format(Source.url_minotar + "/%s.png", new Object[] {StringUtils.stripControlCodes(playerName)}), DefaultPlayerSkin.getDefaultSkin(getOfflineUUID(playerName)), new ImageBufferDownload());
+            ThreadDownloadImageData threaddownloadimagedata = new ThreadDownloadImageData((File)null, String.format("https://minotar.net/skin/%s.png", new Object[] {StringUtils.stripControlCodes(playerName)}), DefaultPlayerSkin.getDefaultSkin(getOfflineUUID(playerName)), new ImageBufferDownload());
             Minecraft.getMinecraft().getTextureManager().loadTexture(resourcelocation, threaddownloadimagedata);
             this.images.put(playerName, resourcelocation);
         }

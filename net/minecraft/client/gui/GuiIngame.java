@@ -4,7 +4,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import de.labystudio.labymod.ConfigManager;
-import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Allowed;
 import java.util.Collection;
 import java.util.List;
@@ -716,7 +715,7 @@ public class GuiIngame extends Gui
 
                 this.drawTexturedModalRect(i4, j4, 16 + k3 * 9, 9 * k4, 9, 9);
 
-                if ((!ConfigManager.settings.oldHearts.booleanValue() || !Allowed.animations()) && flag)
+                if ((!ConfigManager.settings.oldHearts || !Allowed.animations()) && flag)
                 {
                     if (i6 * 2 + 1 < j)
                     {
@@ -1156,8 +1155,6 @@ public class GuiIngame extends Gui
 
             this.highlightingItemStack = itemstack;
         }
-
-        LabyMod.getInstance().gameTick();
     }
 
     public void setRecordPlayingMessage(String p_73833_1_)

@@ -278,6 +278,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
    private ModelManager field_175617_aL;
    private BlockRendererDispatcher field_175618_aM;
    volatile boolean field_71425_J = true;
+   public static boolean cancelShader = false;
    public String field_71426_K = "";
    public boolean field_175613_B = false;
    public boolean field_175614_C = false;
@@ -1327,6 +1328,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
          this.field_71456_v.func_73831_a();
       }
 
+      LabyMod.getInstance().gameTick();
       this.field_71424_I.func_76319_b();
       this.field_71460_t.func_78473_a(1.0F);
       this.field_71424_I.func_76320_a("gameMode");
@@ -1451,7 +1453,7 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
             this.func_152348_aa();
             if(Keyboard.getEventKeyState()) {
-               if(k == 62 && this.field_71460_t != null) {
+               if(k == 62 && this.field_71460_t != null && !cancelShader) {
                   this.field_71460_t.func_175071_c();
                }
 
@@ -1532,10 +1534,12 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
                         this.field_71474_y.field_74320_O = 0;
                      }
 
-                     if(this.field_71474_y.field_74320_O == 0) {
-                        this.field_71460_t.func_175066_a(this.func_175606_aa());
-                     } else if(this.field_71474_y.field_74320_O == 1) {
-                        this.field_71460_t.func_175066_a((Entity)null);
+                     if(!cancelShader) {
+                        if(this.field_71474_y.field_74320_O == 0) {
+                           this.field_71460_t.func_175066_a(this.func_175606_aa());
+                        } else if(this.field_71474_y.field_74320_O == 1) {
+                           this.field_71460_t.func_175066_a((Entity)null);
+                        }
                      }
 
                      this.field_71438_f.func_174979_m();
@@ -2340,6 +2344,10 @@ public class Minecraft implements IThreadListener, IPlayerUsage {
 
    public void func_152348_aa() {
       int i = Keyboard.getEventKey() == 0?Keyboard.getEventCharacter():Keyboard.getEventKey();
+      if(i == 60 && Keyboard.getEventKey() == 0) {
+         i = 0;
+      }
+
       if(i != 0 && !Keyboard.isRepeatEvent() && (!(this.field_71462_r instanceof GuiControls) || ((GuiControls)this.field_71462_r).field_152177_g <= func_71386_F() - 20L)) {
          if(Keyboard.getEventKeyState()) {
             if(i == this.field_71474_y.field_152396_an.func_151463_i()) {

@@ -14,12 +14,14 @@ public class MouseClickedScreenEvent extends Event
     private GuiScreen screen;
     private int mouseX;
     private int mouseY;
+    private int button;
 
-    public MouseClickedScreenEvent(GuiScreen screen, int mouseX, int mouseY)
+    public MouseClickedScreenEvent(GuiScreen screen, int mouseX, int mouseY, int button)
     {
         this.screen = screen;
         this.mouseX = mouseX;
         this.mouseY = mouseY;
+        this.button = button;
     }
 
     public GuiScreen getScreen()
@@ -35,6 +37,11 @@ public class MouseClickedScreenEvent extends Event
     public int getMouseY()
     {
         return this.mouseY;
+    }
+
+    public int getButton()
+    {
+        return this.button;
     }
 
     public Map<Listener, List<Method>> getListenerMethods()

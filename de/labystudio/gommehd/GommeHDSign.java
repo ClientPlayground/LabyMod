@@ -1,6 +1,5 @@
 package de.labystudio.gommehd;
 
-import de.labystudio.labymod.LabyMod;
 import de.labystudio.listener.GommeHD;
 import de.labystudio.utils.Color;
 import java.util.ArrayList;
@@ -19,7 +18,19 @@ import net.minecraft.util.ResourceLocation;
 
 public class GommeHDSign
 {
-    static int noSpam = 0;
+    public static String search = "";
+    public static boolean allowed = false;
+    public static boolean sound = false;
+    public static int partySize = 0;
+    public static String blacklist = "";
+    public static boolean autoJoin = false;
+    public static boolean nightMode = false;
+    public static long noSpamClick = 0L;
+    public static long noSpamLook = 0L;
+    public static TileEntitySign found = null;
+    private static float focusYaw = 0.0F;
+    private static float focusPitch = 0.0F;
+    private static ResourceLocation soundLocation = new ResourceLocation("mob.creeper.death");
 
     public static boolean isGommeSign(ArrayList<String> text)
     {
@@ -85,6 +96,13 @@ public class GommeHDSign
         return !arraylist.isEmpty() && arraylist.size() > 2 && arraylist.get(1) != null && ((String)arraylist.get(1)).contains("6Lobby");
     }
 
+    public static boolean isEmpty(ArrayList<String> text)
+    {
+        ArrayList<String> arraylist = new ArrayList();
+        arraylist.addAll(text);
+        return !arraylist.isEmpty() && arraylist.size() > 2 && arraylist.get(3) != null && Color.removeColor((String)arraylist.get(3)).startsWith("0");
+    }
+
     public static String getMap(ArrayList<String> text)
     {
         ArrayList<String> arraylist = new ArrayList();
@@ -94,7 +112,7 @@ public class GommeHDSign
 
     public static boolean size(ArrayList<String> text)
     {
-        if (LabyMod.getInstance().gommeHDSeachPartySize == 0)
+        if (partySize == 0)
         {
             return true;
         }
@@ -113,7 +131,7 @@ public class GommeHDSign
                     {
                         String[] astring = s.split("/");
 
-                        if (Integer.parseInt(astring[1]) - Integer.parseInt(astring[0]) >= LabyMod.getInstance().gommeHDSeachPartySize && arraylist.get(2) != null)
+                        if (Integer.parseInt(astring[1]) - Integer.parseInt(astring[0]) >= partySize && arraylist.get(2) != null)
                         {
                             String s1 = Color.removeColor((String)arraylist.get(2));
 
@@ -125,7 +143,7 @@ public class GommeHDSign
                             String[] astring1 = s1.split(" ");
                             String[] astring2 = astring1[1].split("x");
 
-                            if (Integer.parseInt(astring2[1]) >= LabyMod.getInstance().gommeHDSeachPartySize)
+                            if (Integer.parseInt(astring2[1]) >= partySize)
                             {
                                 return true;
                             }
@@ -133,9 +151,9 @@ public class GommeHDSign
                     }
                 }
             }
-            catch (Exception var7)
+            catch (Exception exception)
             {
-                ;
+                exception.printStackTrace();
             }
 
             return false;
@@ -148,9 +166,9 @@ public class GommeHDSign
         {
             String s = getMap(text).toLowerCase();
 
-            if (!LabyMod.getInstance().gommeHDSearchBlacklist.isEmpty() && LabyMod.getInstance().gommeHDSearch.isEmpty())
+            if (!blacklist.isEmpty() && search.isEmpty())
             {
-                for (String s3 : LabyMod.getInstance().gommeHDSearchBlacklist.toLowerCase().split(","))
+                for (String s3 : blacklist.toLowerCase().split(","))
                 {
                     if (s.contains(s3))
                     {
@@ -161,16 +179,16 @@ public class GommeHDSign
                 return true;
             }
 
-            if (LabyMod.getInstance().gommeHDSearch.isEmpty())
+            if (search.isEmpty())
             {
                 return true;
             }
 
-            if (!LabyMod.getInstance().gommeHDSearchBlacklist.isEmpty())
+            if (!blacklist.isEmpty())
             {
                 boolean flag = false;
 
-                for (String s2 : LabyMod.getInstance().gommeHDSearch.toLowerCase().split(","))
+                for (String s2 : search.toLowerCase().split(","))
                 {
                     if (s.contains(s2))
                     {
@@ -178,7 +196,7 @@ public class GommeHDSign
                     }
                 }
 
-                for (String s4 : LabyMod.getInstance().gommeHDSearchBlacklist.toLowerCase().split(","))
+                for (String s4 : blacklist.toLowerCase().split(","))
                 {
                     if (s.contains(s4))
                     {
@@ -189,7 +207,7 @@ public class GommeHDSign
                 return flag;
             }
 
-            for (String s1 : LabyMod.getInstance().gommeHDSearch.toLowerCase().split(","))
+            for (String s1 : search.toLowerCase().split(","))
             {
                 if (s.contains(s1))
                 {
@@ -197,9 +215,9 @@ public class GommeHDSign
                 }
             }
         }
-        catch (Exception var7)
+        catch (Exception exception)
         {
-            ;
+            exception.printStackTrace();
         }
 
         return false;
@@ -220,42 +238,42 @@ public class GommeHDSign
         GlStateManager.color(10.0F, 1.6F, 0.6F, 0.6F);
     }
 
+    public static void blue()
+    {
+        GlStateManager.color(0.6F, 0.6F, 0.6F, 0.7F);
+    }
+
     public static void sendJoinPacket(BlockPos b)
     {
-        if (noSpam > 10)
+        if (noSpamClick <= System.currentTimeMillis())
         {
-            noSpam = 0;
-        }
-
-        if (noSpam == 0)
-        {
+            noSpamClick = System.currentTimeMillis() + 100L;
             EnumFacing enumfacing = EnumFacing.UP;
             C07PacketPlayerDigging c07packetplayerdigging = new C07PacketPlayerDigging(C07PacketPlayerDigging.Action.START_DESTROY_BLOCK, b, enumfacing);
             Minecraft.getMinecraft().getNetHandler().addToSendQueue(c07packetplayerdigging);
         }
-
-        ++noSpam;
     }
 
     public static void render(TileEntitySign sign)
     {
-        if (sign.updateSign > 10)
+        if (sign.updateSign > 50)
         {
             sign.updateSign = 0;
         }
 
-        if (LabyMod.getInstance().gommeHDSeachAllowed && GommeHD.isGommeHD() && sign.updateSign == 0)
+        if (sign.updateSign == 0 && allowed && GommeHD.isGommeHD())
         {
             sign.setText(new ArrayList());
             sign.setAvailable(sign.getText());
             sign.setFull(sign.getText());
             sign.setSearch(sign.getText());
             sign.setSize(sign.getText());
+            sign.setEmpty(sign.getText());
         }
 
         ++sign.updateSign;
 
-        if (LabyMod.getInstance().gommeHDSeachAllowed && GommeHD.isGommeHD() && !sign.getText().isEmpty())
+        if (allowed && GommeHD.isGommeHD() && !sign.getText().isEmpty())
         {
             ArrayList<String> arraylist = sign.getText();
 
@@ -267,16 +285,23 @@ public class GommeHDSign
                     {
                         if (sign.getSize())
                         {
-                            green();
-
-                            if (LabyMod.getInstance().gommeHDAutoJoin)
+                            if (sign.isEmpty() && nightMode)
                             {
-                                sendJoinPacket(sign.getPos());
+                                blue();
+                            }
+                            else
+                            {
+                                green();
+
+                                if (autoJoin)
+                                {
+                                    sendJoinPacket(sign.getPos());
+                                }
                             }
 
-                            if (LabyMod.getInstance().gommeHDSound && Minecraft.getSystemTime() / 2L % 30L == 0L)
+                            if (sound && Minecraft.getSystemTime() / 2L % 30L == 0L)
                             {
-                                Minecraft.getMinecraft().getSoundHandler().playSound(new PositionedSoundRecord(new ResourceLocation("fireworks.twinkle_far"), 10.0F, 2.0F, (float)sign.getPos().getX(), (float)sign.getPos().getY(), (float)sign.getPos().getZ()));
+                                Minecraft.getMinecraft().getSoundHandler().playSound(new PositionedSoundRecord(soundLocation, 12.0F, 2.0F, (float)sign.getPos().getX(), (float)sign.getPos().getY(), (float)sign.getPos().getZ()));
                             }
                         }
                         else

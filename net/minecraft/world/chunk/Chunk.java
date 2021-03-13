@@ -124,7 +124,7 @@ public class Chunk
             this.entityLists[i] = new ClassInheritanceMultiMap(Entity.class);
         }
 
-        Arrays.fill((int[])((int[])this.precipitationHeightMap), (int) - 999);
+        Arrays.fill((int[])this.precipitationHeightMap, (int) - 999);
         Arrays.fill(this.blockBiomeArray, (byte) - 1);
     }
 
@@ -423,27 +423,27 @@ public class Chunk
             {
                 if (j < i)
                 {
-                    for (int i1 = j; i1 < i; ++i1)
-                    {
-                        ExtendedBlockStorage extendedblockstorage = this.storageArrays[i1 >> 4];
-
-                        if (extendedblockstorage != null)
-                        {
-                            extendedblockstorage.setExtSkylightValue(x, i1 & 15, z, 15);
-                            this.worldObj.notifyLightSet(new BlockPos((this.xPosition << 4) + x, i1, (this.zPosition << 4) + z));
-                        }
-                    }
-                }
-                else
-                {
-                    for (int j1 = i; j1 < j; ++j1)
+                    for (int j1 = j; j1 < i; ++j1)
                     {
                         ExtendedBlockStorage extendedblockstorage2 = this.storageArrays[j1 >> 4];
 
                         if (extendedblockstorage2 != null)
                         {
-                            extendedblockstorage2.setExtSkylightValue(x, j1 & 15, z, 0);
+                            extendedblockstorage2.setExtSkylightValue(x, j1 & 15, z, 15);
                             this.worldObj.notifyLightSet(new BlockPos((this.xPosition << 4) + x, j1, (this.zPosition << 4) + z));
+                        }
+                    }
+                }
+                else
+                {
+                    for (int i1 = i; i1 < j; ++i1)
+                    {
+                        ExtendedBlockStorage extendedblockstorage = this.storageArrays[i1 >> 4];
+
+                        if (extendedblockstorage != null)
+                        {
+                            extendedblockstorage.setExtSkylightValue(x, i1 & 15, z, 0);
+                            this.worldObj.notifyLightSet(new BlockPos((this.xPosition << 4) + x, i1, (this.zPosition << 4) + z));
                         }
                     }
                 }
@@ -822,7 +822,11 @@ public class Chunk
         int k = pos.getZ() & 15;
         ExtendedBlockStorage extendedblockstorage = this.storageArrays[j >> 4];
 
-        if (extendedblockstorage != null)
+        if (extendedblockstorage == null)
+        {
+            return !this.worldObj.provider.getHasNoSky() && amount < EnumSkyBlock.SKY.defaultLightValue ? EnumSkyBlock.SKY.defaultLightValue - amount : 0;
+        }
+        else
         {
             int l = this.worldObj.provider.getHasNoSky() ? 0 : extendedblockstorage.getExtSkylightValue(i, j & 15, k);
             l = l - amount;
@@ -834,10 +838,6 @@ public class Chunk
             }
 
             return l;
-        }
-        else
-        {
-            return !this.worldObj.provider.getHasNoSky() && amount < EnumSkyBlock.SKY.defaultLightValue ? EnumSkyBlock.SKY.defaultLightValue - amount : 0;
         }
     }
 

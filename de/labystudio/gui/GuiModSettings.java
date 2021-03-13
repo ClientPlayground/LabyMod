@@ -1,12 +1,13 @@
 package de.labystudio.gui;
 
+import de.labystudio.gui.extras.GuiCustomButton;
 import de.labystudio.gui.extras.SliderColor;
 import de.labystudio.gui.extras.SliderCoords;
 import de.labystudio.gui.extras.SliderSize;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
 import de.labystudio.utils.Color;
+import de.labystudio.utils.ControllerInput;
 import de.labystudio.utils.DrawUtils;
 import de.labystudio.utils.ModGui;
 import de.zockermaus.ts3.TeamSpeak;
@@ -85,14 +86,17 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.potionEffects), 6, "Potion Effects", "Shows your current potion effects");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showOnlinePlayers), 5, "Online Players", "Shows how many players are online");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showCoords), 22, "Show coords", "Shows the coordinates");
-            this.addToggle(r, ConfigManager.settings.showServerIP, 34, "Show Server IP", "Displays the IP adress of the server you\'re currently playing on.");
-            this.addToggle(r, ConfigManager.settings.showFPS, 37, "Show FPS", "Shows the FPS");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showServerIP), 34, "Show Server IP", "Displays the IP adress of the server you\'re currently playing on.");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showFPS), 37, "Show FPS", "Shows the FPS");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showKills), 51, "Kills", "Shows the amount of killed players (In Hardcore Games and Survival Games)");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showPing), 33, "Show ping", "Shows your current ping");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showBossBar), 63, "Bossbar", "This option allows you to remove the boss health bar, but the text above it will still be displayed.");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showClock), 83, "Clock", "Displays your current real life time.");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showArrow), 93, "Arrow amount", "Displays the current amount of arrows in your inventory");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showBiome), 97, "Show biome", "Shows the world biome of your position");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showDate), 106, "Show Date", "Shows the date ingame");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.memory), 110, "Show Memory", "Shows used memory in percent");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showLiveTicker), 107, "EM LIVETICKER", "Shows the EM LIVE-STATS");
         }
 
         if (this.currentTab.equals("Formatting"))
@@ -114,15 +118,15 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
 
         if (this.currentTab.equals("Animations"))
         {
-            this.addToggleA(r, ConfigManager.settings.oldDMG, 32, "Damage", "In the 1.8. a damaged player will flash up red for a short time. In the 1.7 the armor will flash up aswell.");
-            this.addToggleA(r, ConfigManager.settings.oldHearts, 40, "Heart", "In the 1.8 your hearts that you lost will light up in white shortly. This does not happen in 1.7");
-            this.addToggleA(r, ConfigManager.settings.oldBow, 41, "Bow", "In the 1.8 the bow is scaled different, in the 1.7 we scaled it as u are used to it");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldDMG), 32, "Damage", "In the 1.8. a damaged player will flash up red for a short time. In the 1.7 the armor will flash up aswell.");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldHearts), 40, "Heart", "In the 1.8 your hearts that you lost will light up in white shortly. This does not happen in 1.7");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldBow), 41, "Bow", "In the 1.8 the bow is scaled different, in the 1.7 we scaled it as u are used to it");
             this.addToggleCustom(r, Boolean.valueOf(ConfigManager.settings.oldTablist), 58, "Tablist", "1.8 Design", "1.7 Design", "The 1.8 Tablist is showing you more information such as playerheads and is sorted alphabetically");
             this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldBlockBuild), 81, "BlockBuild", "In 1.7 it was possible to build a block and destory it the same time. We integrated this feature into 1.8 - This feature is only available on GommeHD.net");
-            this.addToggleA(r, ConfigManager.settings.oldSword, 42, "Sword", "In the 1.7 setting you will see the typical Swordblockanimation in third Personview");
-            this.addToggleA(r, ConfigManager.settings.oldBlockhit, 43, "Blockhit", "the 1.8 does not support the blockhit animation. By choosing 1.7 you will see the wellknown animation again");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldSword), 42, "Sword", "In the 1.7 setting you will see the typical Swordblockanimation in third Personview");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldBlockhit), 43, "Blockhit", "the 1.8 does not support the blockhit animation. By choosing 1.7 you will see the wellknown animation again");
             this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldFishing), 46, "Fishing", "In the 1.8 the rod is scaled different and shown in another angle, in the 1.7 we scaled it as u are used to it");
-            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldSneak), 79, "Sneaking", "In the 1.7 sneaking is made smoother similar to the sneaking animation in 1.7");
+            this.addToggleA(r, Boolean.valueOf(ConfigManager.settings.oldSneak), 79, "Sneaking", "In the 1.7 sneaking is made smoother similar to the sneaking animation in 1.7 - This feature is only available on GommeHD.net");
             this.addToggleCustom(r, Boolean.valueOf(ConfigManager.settings.oldInventory), 102, "Inventory", Color.cl("c") + "1.8 Shift", "1.7 Shift", "In 1.7, the inventory will stay in the middle of the screen, regardless of whether you\'ve got an active effect or not. In 1.8, the inventory is shifted to the right, if you\'ve got an active effect.");
         }
 
@@ -133,7 +137,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
             this.addMToggle(r, "Direction HUD", new GuiModSettings.SettingsButton[] {new GuiModSettings.SettingsButton(2, "F Coordinate", ConfigManager.settings.radarCoordinate), new GuiModSettings.SettingsButton(3, "Cardinal Direction", ConfigManager.settings.radarDirection)}, "Shows the current direction you are facing at (F Coordinate) in the top of the screen");
             this.addSliderSize(r, "Mod Scale");
             this.addToggleS(r, ConfigManager.settings.potionsize, 50, "Potion size");
-            this.addToggleCustomNC(r, ConfigManager.settings.guiPositionRight, 59, "Gui position", "Left", "Right", "Change the position of all important informations");
+            this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.guiPositionRight), 59, "Gui position", "Left", "Right", "Change the position of all important informations");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.onlineFriendsPositionOnTop), 60, "Online Friends position", "Bottom", "Top", "Change the position of the ingame friendlist");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.armorHudPositionOnTop), 86, "Armor HUD position", "Hotbar", "Top", "Change the position of the armor hud");
             this.draw.drawString(Color.c(4) + "Preview:", 108.0D, 5.0D);
@@ -146,11 +150,11 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.clickTest), 90, "Clicktest", "Test your clickspeed");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.lavaTime), 35, "Lavachallenge Timer", "It starts a Timer as you touch lava");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showMyName), 55, "Show my Name", "It will displays your own ingame name above your Head");
-            this.addToggle(r, ConfigManager.settings.capes, 62, "Capes", "Enable/Disable all Capes");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.capes), 62, "Capes", "Enable/Disable all Capes");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.foodSaturation), 52, "Food saturation", "It displays how long you are saturated");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.smoothFPS), 48, "Smooth FPS", "The FPS display will be updated more often");
-            this.addToggle(r, ConfigManager.settings.afkTimer, 56, "AFK Timer", "Its starts a timer once you are AFK");
-            this.addToggle(r, ConfigManager.settings.tabPing, 45, "Ping on Tab", "You can see the ping of every player on the tablist");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.afkTimer), 56, "AFK Timer", "Its starts a timer once you are AFK");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.tabPing), 45, "Ping on Tab", "You can see the ping of every player on the tablist");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showOnlineFriends), 57, "Show Online Friends", "Shows the player head of all online friends in the top or bottom of the screen");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.speedFOV), 71, "SpeedFOV", "If this option is set to OFF, the speed potion effect will no longer increase your FOV.");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.leftHand), 87, "Main hand", "Right", "Left", "Swap the position of your main hand");
@@ -158,36 +162,40 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.spotfiyTrack), 96, "Spotify Track", "Shows you your current playing spotify track");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.cosmetics), 98, "Cosmetics", "Shows cosmetics like wings, hats..");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.hiveAutoScramble), 101, "Hive autoscramble", "Automaticly run the command \'/scramble\' if you join a SG Server");
-            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.thread), 105, "Thread", "With this function you can switch between two java threads. Find out what\'s better for you.");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.api), 105, "LabyMod API", "This option enable/disable all addons (ToggleSprint, DamageIndicator, ItemPhysics..)");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.controller), 108, "Controller BETA", "Play minecraft with your controller (Restart Minecraft and install a driver for your controller - Tested on XBOX 360 CONTROLLER + Windows 10)");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.mineconParticle), 114, "Minecon Particle", "All original Minecon capes have some sparkling particles (Restart required)");
         }
 
         if (this.currentTab.equals("Server Support"))
         {
-            this.addToggle(r, ConfigManager.settings.gameBrawl, 39, "Brawl", "Shows the game information about Brawl");
-            this.addToggle(r, ConfigManager.settings.gameTimolia, 16, "Timolia", "Shows the game information about Timolia");
-            this.addToggle(r, ConfigManager.settings.gamePlayMinity, 17, "PlayMinity", "Shows the game information about PlayMinity");
-            this.addToggle(r, ConfigManager.settings.gameGommeHD, 18, "GommeHD", "Shows the game information about GommeHD");
-            this.addToggle(r, ConfigManager.settings.gameHiveMC, 74, "HiveMC", "Shows the game information about HiveMC");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gameBrawl), 39, "Brawl", "Shows the game information about Brawl");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gameTimolia), 16, "Timolia", "Shows the game information about Timolia");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gamePlayMinity), 17, "PlayMinity", "Shows the game information about PlayMinity");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gameGommeHD), 18, "GommeHD", "Shows the game information about GommeHD");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gameHiveMC), 74, "HiveMC", "Shows the game information about HiveMC");
         }
 
         if (this.currentTab.equals("GommeHD.net"))
         {
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.gommePosLeft), 73, "BedWars Timer", "Right", "Left", "Change the position of the GommeHD Gold cooldown");
-            this.addToggle(r, ConfigManager.settings.showBWTeams, 76, "BedWars Teams", "Displays the name of the teams above their bases in BedWars");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.autoLeave), 80, "Auto Leave", "If your party doesn\'t find a team in bedwars you will automatically connect to the hub.");
-            this.addToggle(r, ConfigManager.settings.showBWTimer, 75, "BedWars Timer", "Indicates the time until the next gold/iron will spawn at BedWars");
-            this.addToggle(r, ConfigManager.settings.showNickname, 23, "Show Nickname", "Displays your nickname of the youtuber-nick plugin (on GommeHD for instance).");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showBWTimer), 75, "BedWars Timer", "Indicates the time until the next gold/iron will spawn at BedWars");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.showNickname), 23, "Show Nickname", "Displays your nickname of the youtuber-nick plugin (on GommeHD.net).");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.skyblock), 109, "Show Skyblock Owner", "Displays the island owner in Skyblock (on GommeHD for example).");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gommeBedTimer), 112, "Bed Percentage", "Displays the block break percentage of the bed in bedwars (GommeHD)");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.gommeBeaconTimer), 72, "Core Percentage", "Displays the block break percentage of the beacon in cores (GommeHD)");
         }
 
         if (this.currentTab.equals("Menu"))
         {
-            this.addToggle(r, ConfigManager.settings.smoothScroll, 64, "Smooth scrolling", "Reduces the scroll-speed for the Serverlist");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.smoothScroll), 64, "Smooth scrolling", "Reduces the scroll-speed for the Serverlist");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.background), 82, "Gui background", "This option allows you to enable and disable the background of the GUI");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.betterRefresh), 49, "Better Refresh", "Adds an auto refresh button in the multiplayer gui");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.confirmDisconnect), 61, "Confirm Disconnect", "You have to confirm with pressing the button again if you want to disconnect the server");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.infoInMenu), 47, "Serverstatus in Menu", "Shows you all server information in the ESCAPE menu (Server icon, motd, slots, online players, ping)");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.directConnectInfo), 54, "Directconnect Serverstatus", "Shows you all important server information in the direct connent gui (online players, slots, ping)");
-            this.addToggle(r, ConfigManager.settings.tags, 68, "Tags", "This option allows you to change the names of your friends and costumize them using colorcodes. The nicknames can be seen in the tablist, over their heads and in chat.");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.tags), 68, "Tags", "This option allows you to change the names of your friends and costumize them using colorcodes. The nicknames can be seen in the tablist, over their heads and in chat.");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.miniGames), 36, "Minigames", "Minigames in Minecraft");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.quickPlay), 84, "QuickPlay", "Shows in the main menu the latest server and your directconnect server");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.stopWatch), 85, "Stopwatch", "A simple stopwatch in Minecraft. It lets you measure the time, which will also be displayed in the GUI.");
@@ -196,10 +204,10 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
 
         if (this.currentTab.equals("TeamSpeak"))
         {
-            this.addToggle(r, ConfigManager.settings.teamSpeak, 65, "TeamSpeak", "If you run TeamSpeak you\'re able to accses it using Minecraft, you\'ll be able to see channels, join them, etc.");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.teamSpeak), 65, "TeamSpeak", "If you run TeamSpeak you\'re able to accses it using Minecraft, you\'ll be able to see channels, join them, etc.");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.alertsTeamSpeak), 4, "TS Alerts", "Shows a message from TeamSpeak as an achievement or chat message");
-            this.addToggleSub(r, ConfigManager.settings.teamSpakIngameClients, ConfigManager.settings.teamSpeak, 70, "TS Clients", "Showing you who is in the channel and who is currently talking.");
-            this.addToggleSub(r, Boolean.valueOf(ConfigManager.settings.teamSpakIngame), ConfigManager.settings.teamSpeak, 69, "TS Channel", "If this option is on, the channel you\'re currently in will be displayed below your coordinates.");
+            this.addToggleSub(r, Boolean.valueOf(ConfigManager.settings.teamSpakIngameClients), Boolean.valueOf(ConfigManager.settings.teamSpeak), 70, "TS Clients", "Showing you who is in the channel and who is currently talking.");
+            this.addToggleSub(r, Boolean.valueOf(ConfigManager.settings.teamSpakIngame), Boolean.valueOf(ConfigManager.settings.teamSpeak), 69, "TS Channel", "If this option is on, the channel you\'re currently in will be displayed below your coordinates.");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.teamSpeakAlertTypeChat), 88, "Alert type", "Achievement", "Chat", "With this function you can choose the type of the Teamspeak message. Either as Achievement or in the normal chat.");
             this.addSliderColor(r, "TS Silent", 6);
             this.addSliderColor(r, "TS Talking", 7);
@@ -210,12 +218,14 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
 
         if (this.currentTab.equals("Minecraft Chat"))
         {
-            this.addToggle(r, ConfigManager.settings.chatFilter, 78, "Chat Filter", "You can filter your chat by certain keywords, or commands definded at \"filters\"");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.chatFilter), 78, "Chat Filter", "You can filter your chat by certain keywords, or commands definded at \"filters\"");
             this.addToggle(r, Boolean.valueOf(ConfigManager.settings.autoText), 77, "AutoText", "Your previously defined chat messages will be sended by pressing a single key");
-            this.addToggle(r, ConfigManager.settings.extraChat, 38, "Extra Chat", "You can see all private messages in an extra chat on the right side of the screen");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.extraChat), 38, "Extra Chat", "You can see all private messages in an extra chat on the right side of the screen");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.chatAlertType), 89, "LabyMod Chat Notify Type", "Achievement", "Chat", "With this function you can choose the type of the LabyMod Chat message. Either as Achievement or in the normal chat.");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.chatPositionRight), 91, "Chat Position", "Right", "Left", "The Position of the Minecraft Chat");
             this.addToggleCustomNC(r, Boolean.valueOf(ConfigManager.settings.mojangStatusChat), 95, "Mojang Status type", "Achievement", "Chat", "With this function you can choose the type of the Mojang Status message. Either as Achievement or in the normal chat.");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.nameHistory), 111, "Minecraft Name History", "Get the full name history of a player in an ingame GUI!");
+            this.addToggle(r, Boolean.valueOf(ConfigManager.settings.fastChat), 113, "Fast Chat", "Transparent chat GUI!");
         }
     }
 
@@ -302,15 +312,15 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 16:
-                    ConfigManager.settings.gameTimolia = Boolean.valueOf(!ConfigManager.settings.gameTimolia.booleanValue());
+                    ConfigManager.settings.gameTimolia = !ConfigManager.settings.gameTimolia;
                     break;
 
                 case 17:
-                    ConfigManager.settings.gamePlayMinity = Boolean.valueOf(!ConfigManager.settings.gamePlayMinity.booleanValue());
+                    ConfigManager.settings.gamePlayMinity = !ConfigManager.settings.gamePlayMinity;
                     break;
 
                 case 18:
-                    ConfigManager.settings.gameGommeHD = Boolean.valueOf(!ConfigManager.settings.gameGommeHD.booleanValue());
+                    ConfigManager.settings.gameGommeHD = !ConfigManager.settings.gameGommeHD;
                     break;
 
                 case 19:
@@ -330,7 +340,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 23:
-                    ConfigManager.settings.showNickname = Boolean.valueOf(!ConfigManager.settings.showNickname.booleanValue());
+                    ConfigManager.settings.showNickname = !ConfigManager.settings.showNickname;
                     break;
 
                 case 24:
@@ -381,7 +391,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 32:
-                    ConfigManager.settings.oldDMG = Boolean.valueOf(!ConfigManager.settings.oldDMG.booleanValue());
+                    ConfigManager.settings.oldDMG = !ConfigManager.settings.oldDMG;
                     break;
 
                 case 33:
@@ -389,7 +399,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 34:
-                    ConfigManager.settings.showServerIP = Boolean.valueOf(!ConfigManager.settings.showServerIP.booleanValue());
+                    ConfigManager.settings.showServerIP = !ConfigManager.settings.showServerIP;
                     break;
 
                 case 35:
@@ -401,31 +411,31 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 37:
-                    ConfigManager.settings.showFPS = Boolean.valueOf(!ConfigManager.settings.showFPS.booleanValue());
+                    ConfigManager.settings.showFPS = !ConfigManager.settings.showFPS;
                     break;
 
                 case 38:
-                    ConfigManager.settings.extraChat = Boolean.valueOf(!ConfigManager.settings.extraChat.booleanValue());
+                    ConfigManager.settings.extraChat = !ConfigManager.settings.extraChat;
                     break;
 
                 case 39:
-                    ConfigManager.settings.gameBrawl = Boolean.valueOf(!ConfigManager.settings.gameBrawl.booleanValue());
+                    ConfigManager.settings.gameBrawl = !ConfigManager.settings.gameBrawl;
                     break;
 
                 case 40:
-                    ConfigManager.settings.oldHearts = Boolean.valueOf(!ConfigManager.settings.oldHearts.booleanValue());
+                    ConfigManager.settings.oldHearts = !ConfigManager.settings.oldHearts;
                     break;
 
                 case 41:
-                    ConfigManager.settings.oldBow = Boolean.valueOf(!ConfigManager.settings.oldBow.booleanValue());
+                    ConfigManager.settings.oldBow = !ConfigManager.settings.oldBow;
                     break;
 
                 case 42:
-                    ConfigManager.settings.oldSword = Boolean.valueOf(!ConfigManager.settings.oldSword.booleanValue());
+                    ConfigManager.settings.oldSword = !ConfigManager.settings.oldSword;
                     break;
 
                 case 43:
-                    ConfigManager.settings.oldBlockhit = Boolean.valueOf(!ConfigManager.settings.oldBlockhit.booleanValue());
+                    ConfigManager.settings.oldBlockhit = !ConfigManager.settings.oldBlockhit;
                     break;
 
                 case 44:
@@ -433,7 +443,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 45:
-                    ConfigManager.settings.tabPing = Boolean.valueOf(!ConfigManager.settings.tabPing.booleanValue());
+                    ConfigManager.settings.tabPing = !ConfigManager.settings.tabPing;
                     break;
 
                 case 46:
@@ -467,7 +477,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 53:
-                    ConfigManager.settings.armorRating = Boolean.valueOf(!ConfigManager.settings.armorRating.booleanValue());
+                    ConfigManager.settings.armorRating = !ConfigManager.settings.armorRating;
                     break;
 
                 case 54:
@@ -479,7 +489,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 56:
-                    ConfigManager.settings.afkTimer = Boolean.valueOf(!ConfigManager.settings.afkTimer.booleanValue());
+                    ConfigManager.settings.afkTimer = !ConfigManager.settings.afkTimer;
                     break;
 
                 case 57:
@@ -491,7 +501,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 59:
-                    ConfigManager.settings.guiPositionRight = Boolean.valueOf(!ConfigManager.settings.guiPositionRight.booleanValue());
+                    ConfigManager.settings.guiPositionRight = !ConfigManager.settings.guiPositionRight;
                     break;
 
                 case 60:
@@ -503,7 +513,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 62:
-                    ConfigManager.settings.capes = Boolean.valueOf(!ConfigManager.settings.capes.booleanValue());
+                    ConfigManager.settings.capes = !ConfigManager.settings.capes;
                     LabyMod.getInstance().getCapeManager().refresh();
                     break;
 
@@ -512,16 +522,16 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 64:
-                    ConfigManager.settings.smoothScroll = Boolean.valueOf(!ConfigManager.settings.smoothScroll.booleanValue());
+                    ConfigManager.settings.smoothScroll = !ConfigManager.settings.smoothScroll;
                     break;
 
                 case 65:
-                    ConfigManager.settings.teamSpeak = Boolean.valueOf(!ConfigManager.settings.teamSpeak.booleanValue());
+                    ConfigManager.settings.teamSpeak = !ConfigManager.settings.teamSpeak;
 
-                    if (!ConfigManager.settings.teamSpeak.booleanValue())
+                    if (!ConfigManager.settings.teamSpeak)
                     {
                         ConfigManager.settings.teamSpakIngame = false;
-                        ConfigManager.settings.teamSpakIngameClients = Boolean.valueOf(false);
+                        ConfigManager.settings.teamSpakIngameClients = false;
                         TeamSpeakController.getInstance().quit();
                     }
                     else
@@ -530,7 +540,6 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     }
 
                 case 66:
-                case 72:
                 case 99:
                 case 100:
                 case 103:
@@ -538,11 +547,11 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 67:
-                    ConfigManager.settings.brawl = Boolean.valueOf(!ConfigManager.settings.brawl.booleanValue());
+                    ConfigManager.settings.brawl = !ConfigManager.settings.brawl;
                     break;
 
                 case 68:
-                    ConfigManager.settings.tags = Boolean.valueOf(!ConfigManager.settings.tags.booleanValue());
+                    ConfigManager.settings.tags = !ConfigManager.settings.tags;
                     break;
 
                 case 69:
@@ -550,11 +559,15 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 70:
-                    ConfigManager.settings.teamSpakIngameClients = Boolean.valueOf(!ConfigManager.settings.teamSpakIngameClients.booleanValue());
+                    ConfigManager.settings.teamSpakIngameClients = !ConfigManager.settings.teamSpakIngameClients;
                     break;
 
                 case 71:
                     ConfigManager.settings.speedFOV = !ConfigManager.settings.speedFOV;
+                    break;
+
+                case 72:
+                    ConfigManager.settings.gommeBeaconTimer = !ConfigManager.settings.gommeBeaconTimer;
                     break;
 
                 case 73:
@@ -562,15 +575,15 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 74:
-                    ConfigManager.settings.gameHiveMC = Boolean.valueOf(!ConfigManager.settings.gameHiveMC.booleanValue());
+                    ConfigManager.settings.gameHiveMC = !ConfigManager.settings.gameHiveMC;
                     break;
 
                 case 75:
-                    ConfigManager.settings.showBWTimer = Boolean.valueOf(!ConfigManager.settings.showBWTimer.booleanValue());
+                    ConfigManager.settings.showBWTimer = !ConfigManager.settings.showBWTimer;
                     break;
 
                 case 76:
-                    ConfigManager.settings.showBWTeams = Boolean.valueOf(!ConfigManager.settings.showBWTeams.booleanValue());
+                    ConfigManager.settings.showBWTeams = !ConfigManager.settings.showBWTeams;
                     break;
 
                 case 77:
@@ -578,7 +591,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 78:
-                    ConfigManager.settings.chatFilter = Boolean.valueOf(!ConfigManager.settings.chatFilter.booleanValue());
+                    ConfigManager.settings.chatFilter = !ConfigManager.settings.chatFilter;
                     break;
 
                 case 79:
@@ -674,7 +687,53 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     break;
 
                 case 105:
-                    ConfigManager.settings.thread = !ConfigManager.settings.thread;
+                    ConfigManager.settings.api = !ConfigManager.settings.api;
+                    break;
+
+                case 106:
+                    ConfigManager.settings.showDate = !ConfigManager.settings.showDate;
+                    break;
+
+                case 107:
+                    ConfigManager.settings.showLiveTicker = !ConfigManager.settings.showLiveTicker;
+                    break;
+
+                case 108:
+                    ConfigManager.settings.controller = !ConfigManager.settings.controller;
+
+                    if (ConfigManager.settings.controller)
+                    {
+                        ControllerInput.init();
+                    }
+                    else
+                    {
+                        ControllerInput.exit();
+                    }
+
+                    break;
+
+                case 109:
+                    ConfigManager.settings.skyblock = !ConfigManager.settings.skyblock;
+                    break;
+
+                case 110:
+                    ConfigManager.settings.memory = !ConfigManager.settings.memory;
+                    break;
+
+                case 111:
+                    ConfigManager.settings.nameHistory = !ConfigManager.settings.nameHistory;
+                    break;
+
+                case 112:
+                    ConfigManager.settings.gommeBedTimer = !ConfigManager.settings.gommeBedTimer;
+                    break;
+
+                case 113:
+                    ConfigManager.settings.fastChat = !ConfigManager.settings.fastChat;
+                    break;
+
+                case 114:
+                    ConfigManager.settings.mineconParticle = !ConfigManager.settings.mineconParticle;
             }
 
             if (button.id != -3)
@@ -725,7 +784,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 i = i - 11;
             }
 
-            if (ConfigManager.settings.showFPS.booleanValue())
+            if (ConfigManager.settings.showFPS)
             {
                 this.draw.addNoScaleLabel("FPS", ModGui.getFPS() + "", i);
                 i -= 11;
@@ -910,9 +969,9 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 s = Color.cl("a") + enabled;
             }
 
-            GuiButton guibutton = new GuiButton(id, this.x, this.y, 80, 20, s);
-            guibutton.info = info;
-            this.buttonList.add(guibutton);
+            GuiCustomButton guicustombutton = new GuiCustomButton(id, this.x, this.y, 80, 20, s);
+            guicustombutton.info = info;
+            this.buttonList.add(guicustombutton);
             this.x += 100;
 
             if (this.x > this.width - 110)
@@ -969,9 +1028,9 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 s = enabled;
             }
 
-            GuiButton guibutton = new GuiButton(id, this.x, this.y, 80, 20, s);
-            guibutton.info = info;
-            this.buttonList.add(guibutton);
+            GuiCustomButton guicustombutton = new GuiCustomButton(id, this.x, this.y, 80, 20, s);
+            guicustombutton.info = info;
+            this.buttonList.add(guicustombutton);
             this.x += 100;
 
             if (this.x > this.width - 110)
@@ -1028,10 +1087,10 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 s = Color.cl("a") + enabled;
             }
 
-            GuiButton guibutton = new GuiButton(id, this.x, this.y, 80, 20, s);
-            guibutton.info = info;
-            guibutton.enabled = sub.booleanValue();
-            this.buttonList.add(guibutton);
+            GuiCustomButton guicustombutton = new GuiCustomButton(id, this.x, this.y, 80, 20, s);
+            guicustombutton.info = info;
+            guicustombutton.enabled = sub.booleanValue();
+            this.buttonList.add(guicustombutton);
             this.x += 100;
 
             if (this.x > this.width - 110)
@@ -1154,10 +1213,12 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 }
 
                 GuiButton guibutton = new GuiButton(l, this.x + j, this.y, this.draw.getStringWidth(s1) + 13, 20, s1);
-//                if (s1 == k)
-//                {
-//                    guibutton.enabled = false;
-//                }
+
+                if (s == k)
+                {
+                    guibutton.enabled = false;
+                }
+
                 this.buttonList.add(guibutton);
                 j += this.draw.getStringWidth(s1) + 14;
             }
@@ -1218,10 +1279,12 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                 int l = 50;
                 int i1 = -20;
                 GuiButton guibutton = new GuiButton(id + k, this.x + j, this.y, this.draw.getStringWidth(s1) + 13, 20, s1);
-//                if (s1 == k)
-//                {
-//                    guibutton.enabled = false;
-//                }
+
+                if (s == k)
+                {
+                    guibutton.enabled = false;
+                }
+
                 this.buttonList.add(guibutton);
                 j += this.draw.getStringWidth(s1) + 14;
             }
@@ -1253,9 +1316,9 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
                     s = Color.cl("a");
                 }
 
-                GuiButton guibutton = new GuiButton(guimodsettings$settingsbutton.id, this.x + i, this.y, this.draw.getStringWidth(guimodsettings$settingsbutton.text) + 8, 20, s + guimodsettings$settingsbutton.text);
-                guibutton.info = info;
-                this.buttonList.add(guibutton);
+                GuiCustomButton guicustombutton = new GuiCustomButton(guimodsettings$settingsbutton.id, this.x + i, this.y, this.draw.getStringWidth(guimodsettings$settingsbutton.text) + 8, 20, s + guimodsettings$settingsbutton.text);
+                guicustombutton.info = info;
+                this.buttonList.add(guicustombutton);
                 i += this.draw.getStringWidth(guimodsettings$settingsbutton.text) + 10;
             }
 
@@ -1316,7 +1379,10 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
 
         for (GuiButton guibutton : this.buttonList)
         {
-            guibutton.drawInfoBox();
+            if (guibutton instanceof GuiCustomButton)
+            {
+                ((GuiCustomButton)guibutton).drawInfoBox();
+            }
         }
     }
 
@@ -1324,8 +1390,7 @@ public class GuiModSettings extends GuiScreen implements GuiYesNoCallback
     {
         this.draw.drawCenteredString(this.currentTab, (this.width + 105) / 2, 10);
         this.draw.drawCenteredString("LabyMod Settings", 51, 10);
-        this.draw.drawRightString(Color.cc(4) + Source.mod_Name + " v" + Source.mod_VersionName, (double)(this.width - 5), 5.0D);
-        this.draw.drawRightString(Color.cc(5) + "by LabyStudio", (double)(this.width - 5), 15.0D);
+        this.draw.drawRightString(Color.cc(4) + "LabyMod" + " v" + "2.8.05", (double)(this.width - 10), 10.0D);
     }
 
     public void addTab(String title)

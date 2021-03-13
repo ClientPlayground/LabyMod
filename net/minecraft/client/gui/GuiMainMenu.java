@@ -1,9 +1,9 @@
 package net.minecraft.client.gui;
 
 import com.google.common.collect.Lists;
+import de.labystudio.gui.extras.GuiCustomButton;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
 import de.labystudio.utils.Color;
 import java.io.BufferedReader;
 import java.io.File;
@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.minecraft.client.Minecraft;
@@ -74,6 +75,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
     private String openGLWarningLink;
     private static final ResourceLocation splashTexts = new ResourceLocation("texts/splashes.txt");
     private static final ResourceLocation minecraftTitleTextures = new ResourceLocation("textures/gui/title/minecraft.png");
+    private static final ResourceLocation twitter = new ResourceLocation("twitter.png");
 
     /** An array of all the paths to the panorama pictures. */
     private static final ResourceLocation[] titlePanoramaPaths = new ResourceLocation[] {new ResourceLocation("textures/gui/title/background/panorama_0.png"), new ResourceLocation("textures/gui/title/background/panorama_1.png"), new ResourceLocation("textures/gui/title/background/panorama_2.png"), new ResourceLocation("textures/gui/title/background/panorama_3.png"), new ResourceLocation("textures/gui/title/background/panorama_4.png"), new ResourceLocation("textures/gui/title/background/panorama_5.png")};
@@ -89,6 +91,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
     /** Minecraft Realms button. */
     private GuiButton realmsButton;
     private boolean labyModMessage = false;
+    private Locale locale;
 
     public GuiMainMenu()
     {
@@ -155,9 +158,9 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
             this.openGLWarningLink = "https://help.mojang.com/customer/portal/articles/325948?ref=game";
         }
 
-        if (!Source.mod_VersionType.isEmpty())
+        if (!"".isEmpty())
         {
-            this.openGLWarning1 = "You are using a " + Color.clc("e") + Source.mod_VersionType + Color.clc("f") + " version of the LabyMod!";
+            this.openGLWarning1 = "You are using a " + Color.clc("e") + "" + Color.clc("f") + " version of the LabyMod!";
             this.openGLWarning2 = "This is an unstable Version and bugs may occur.";
             this.openGLWarningLink = "";
         }
@@ -179,7 +182,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
         {
             this.openGLWarning1 = "A new LabyMod Version " + LabyMod.getInstance().latestVersionName + " is available!";
             this.openGLWarning2 = "Click " + Color.clc("n") + "here" + Color.clc("f") + " to download the latest version.";
-            this.openGLWarningLink = Source.url_Update;
+            this.openGLWarningLink = "https://www.LabyMod.net";
         }
     }
 
@@ -236,11 +239,11 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
         }
         else if (calendar.get(2) + 1 == 6 && calendar.get(5) == 23)
         {
-            this.splashText = "Happy birthday, Zockermaus!";
+            this.splashText = "Happy birthday, Fleance!";
         }
         else if (calendar.get(2) + 1 == 4 && calendar.get(5) == 25)
         {
-            this.splashText = "Happy birthday, qlow!";
+            this.splashText = "Happy birthday, _qlow!";
         }
         else if (calendar.get(2) + 1 == 10 && calendar.get(5) == 21)
         {
@@ -369,9 +372,9 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
                 guibutton.visible = false;
             }
 
-            GuiButton guibutton1 = new GuiButton(-1, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2 - 45, Color.clc("4") + "An error occurred while loading the LabyMod!");
-            guibutton1.noGui = true;
-            this.buttonList.add(guibutton1);
+            GuiCustomButton guicustombutton = new GuiCustomButton(-1, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2 - 45, Color.clc("4") + "An error occurred while loading the LabyMod!");
+            guicustombutton.noGui = true;
+            this.buttonList.add(guicustombutton);
             this.buttonList.add(new GuiButton(16, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2 - 25, Color.clc("e") + "Option 1: " + Color.clc("c") + "Reload the LabyMod"));
             this.buttonList.add(new GuiButton(15, this.width / 2 - 100, p_73969_1_ + p_73969_2_ * 2, Color.clc("e") + "Option 2: " + Color.clc("c") + "Delete LabyMod config file"));
         }
@@ -462,7 +465,7 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
 
         if (button.id == 15)
         {
-            File file1 = new File(Source.file_Config);
+            File file1 = new File("LabyMod/LabyMod.json");
 
             if (file1.exists())
             {
@@ -718,33 +721,11 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
             s = s + " Demo";
         }
 
-        this.drawString(this.fontRendererObj, "" + Source.mod_Name + " " + Source.mod_VersionName + " " + Source.mod_VersionType, 2, this.height - 10, -1);
+        this.drawString(this.fontRendererObj, "LabyMod 2.8.05 ", 2, this.height - 10, -1);
         this.drawString(this.fontRendererObj, s, 2, this.height - 20, -1);
         GlStateManager.color(1.0F, 1.0F, 1.0F);
-        double d0 = (double)(this.width - 55);
-        double d1 = (double)(this.height - 29);
-        LabyMod.getInstance().draw.drawCenteredString("LabyMod Developer", d0, d1, 0.8D);
-        int l = 48;
-        d0 = (double)(this.width - 50 - l);
-        d1 = (double)(this.height - 18);
-        LabyMod.getInstance().textureManager.drawPlayerHead("LabyStudio", d0, d1, 0.4D);
-        d0 = (double)(this.width - 43 - l);
-        d1 = (double)(this.height - 7);
-        LabyMod.getInstance().draw.drawCenteredString("LabyStudio", d0, d1, 0.6D);
-        l = 10;
-        d0 = (double)(this.width - 50 - l);
-        d1 = (double)(this.height - 18);
-        LabyMod.getInstance().textureManager.drawPlayerHead("Zockermaus", d0, d1, 0.4D);
-        d0 = (double)(this.width - 43 - l);
-        d1 = (double)(this.height - 7);
-        LabyMod.getInstance().draw.drawCenteredString("Zockermaus", d0, d1, 0.6D);
-        l = -25;
-        d0 = (double)(this.width - 50 - l);
-        d1 = (double)(this.height - 18);
-        LabyMod.getInstance().textureManager.drawPlayerHead("_qlow", d0, d1, 0.4D);
-        d0 = (double)(this.width - 44 - l);
-        d1 = (double)(this.height - 7);
-        LabyMod.getInstance().draw.drawCenteredString("_qlow", d0, d1, 0.6D);
+        String s1 = "Copyright Mojang AB. Do not distribute!";
+        this.drawString(this.fontRendererObj, s1, this.width - this.fontRendererObj.getStringWidth(s1) - 2, this.height - 10, -1);
 
         if (this.openGLWarning1 != null && this.openGLWarning1.length() > 0)
         {
@@ -753,8 +734,45 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
             this.drawCenteredString(this.fontRendererObj, this.openGLWarning2, this.width / 2, ((GuiButton)this.buttonList.get(0)).yPosition - 12, -1);
         }
 
+        this.mc.getTextureManager().bindTexture(twitter);
+        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.pushMatrix();
+        String s2 = "";
+        int l = 0;
+
+        if (mouseX < 65 && mouseY < 15)
+        {
+            s2 = Color.cl("b");
+            GlStateManager.scale(0.052D, 0.047D, 0.052D);
+            l = -5;
+        }
+        else
+        {
+            GlStateManager.scale(0.05D, 0.045D, 0.05D);
+        }
+
+        this.drawTexturedModalRect(15 + l, 15 + l, 0, 0, 250, 255);
+        GlStateManager.popMatrix();
+        LabyMod.getInstance().draw.drawString(s2 + "@LabyMod", 15.0D, 2.0D, 1.0D);
+
+        if (LabyMod.getInstance().supportApply && this.getLocale() != null && this.getLocale().toString().equals("de_DE"))
+        {
+            LabyMod.getInstance().draw.drawString(Color.cl("f") + "Supporter Bewerbungsphase", 16.0D, 12.0D, 0.7D);
+            LabyMod.getInstance().draw.drawString(Color.cl("f") + "LabyMod.net/apply", 16.0D, 19.0D, 0.7D);
+        }
+
         super.drawScreen(mouseX, mouseY, partialTicks);
         LabyMod.getInstance().overlay(mouseX, mouseY);
+    }
+
+    public Locale getLocale()
+    {
+        if (this.locale == null)
+        {
+            this.locale = new Locale(System.getProperty("user.language"), System.getProperty("user.country"));
+        }
+
+        return this.locale;
     }
 
     /**
@@ -763,6 +781,11 @@ public class GuiMainMenu extends GuiScreen implements GuiYesNoCallback
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
+
+        if (mouseX < 65 && mouseY < 15)
+        {
+            LabyMod.getInstance().openWebpage("https://twitter.com/LabyMod", true);
+        }
 
         synchronized (this.threadLock)
         {

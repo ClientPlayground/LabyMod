@@ -185,7 +185,7 @@ public class GommeHDBed
 
     public static void renderPlayerTag(EntityLivingBase entity, double x, double y, double z)
     {
-        if (GommeHD.gommeHDServer_BW && ConfigManager.settings.showBWTeams.booleanValue() && GommeHD.isGommeHD())
+        if (GommeHD.gommeHDServer_BW && ConfigManager.settings.showBWTeams && GommeHD.isGommeHD())
         {
             if (respawn.contains(entity.getUniqueID()) && !entity.isDead)
             {

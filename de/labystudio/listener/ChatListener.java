@@ -2,17 +2,21 @@ package de.labystudio.listener;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
+import de.labystudio.modapi.ModAPI;
+import de.labystudio.modapi.events.ChatReceivedEvent;
 import de.labystudio.utils.Allowed;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.FilterLoader;
 import de.labystudio.utils.FriendsLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
 public class ChatListener
 {
     public static long init = 0L;
+    private static ResourceLocation soundLocation = new ResourceLocation("note.bassattack");
 
     public static void serverChat(String raw, String clean)
     {
@@ -23,15 +27,15 @@ public class ChatListener
         HiveMC.serverHiveChat(clean, raw);
     }
 
-    public static boolean allowedToPrint(String raw, String clean)
+    public static boolean allowedToPrint(IChatComponent component)
     {
-        if (raw == null)
+        if (component != null && component.getFormattedText() != null)
         {
-            return true;
+            serverChat(component.getFormattedText(), component.getUnformattedText());
+            return ModAPI.enabled() && ((ChatReceivedEvent)ModAPI.callEvent(new ChatReceivedEvent(component))).isCancelled() ? false : !ConfigManager.settings.skyblock || !component.getUnformattedText().startsWith("Du betrittst nun die Insel von: ") && !component.getUnformattedText().startsWith("Du verl\u00e4sst nun die Insel von: ");
         }
         else
         {
-            serverChat(raw, clean);
             return true;
         }
     }
@@ -48,12 +52,12 @@ public class ChatListener
                 {
                     if (raw.contains(":") && raw.split(":")[0].contains(s))
                     {
-                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", "\u00a7") + "\u00a7r");
+                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", Color.c) + Color.c + "r");
                     }
 
                     if (raw.contains(">") && raw.split(":")[0].contains(s))
                     {
-                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", "\u00a7") + "\u00a7r");
+                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", Color.c) + Color.c + "r");
                     }
 
                     if (raw.contains(":") && raw.split(":")[1].contains(s))
@@ -68,7 +72,7 @@ public class ChatListener
 
                     try
                     {
-                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", "\u00a7") + "\u00a7r");
+                        return raw.replaceFirst(s, ((String)FriendsLoader.friends.get(s)).replace("&", Color.c) + Color.c + "r");
                     }
                     catch (Exception var6)
                     {
@@ -89,7 +93,7 @@ public class ChatListener
 
     public static boolean isServerMSG(String msg)
     {
-        if (ConfigManager.settings.chatFilter.booleanValue() && FilterLoader.enabled)
+        if (ConfigManager.settings.chatFilter && FilterLoader.enabled)
         {
             for (String s : FilterLoader.filters)
             {
@@ -102,14 +106,19 @@ public class ChatListener
             }
         }
 
-        if (ConfigManager.settings.extraChat.booleanValue())
+        if (ConfigManager.settings.extraChat)
         {
             if (LabyMod.getInstance().ip == null || LabyMod.getInstance().ip.isEmpty())
             {
                 return false;
             }
 
-            if ((LabyMod.getInstance().ip.toLowerCase().contains("gommehd.net") || LabyMod.getInstance().ip.toLowerCase().contains("minekits")) && (msg.toLowerCase().contains(LabyMod.getInstance().getPlayerName().toLowerCase()) || msg.contains("Du") || msg.contains("Dir")) && msg.startsWith("[F") && (msg.contains(" -> ") || msg.contains(" <- ")))
+            if (LabyMod.getInstance().ip.toLowerCase().contains("gommehd.net") && msg.toLowerCase().contains(LabyMod.getInstance().getPlayerName().toLowerCase()) && (msg.contains("-\u00bb") || msg.contains("\u00bb\u00bb")) && msg.startsWith("[F") && msg.contains(":"))
+            {
+                return true;
+            }
+
+            if (LabyMod.getInstance().ip.toLowerCase().contains("minekits") && (msg.toLowerCase().contains(LabyMod.getInstance().getPlayerName().toLowerCase()) || msg.contains("Du") || msg.contains("Dir")) && msg.startsWith("[F") && (msg.contains(" -> ") || msg.contains(" <- ")))
             {
                 return true;
             }
@@ -119,7 +128,7 @@ public class ChatListener
                 return true;
             }
 
-            if (LabyMod.getInstance().ip.toLowerCase().contains("timolia") && msg.startsWith(Color.c + "1") && msg.contains("MSG") && msg.contains("Du"))
+            if (LabyMod.getInstance().ip.toLowerCase().contains("timolia") && msg.startsWith("\u2502 MSG") && msg.contains("Du"))
             {
                 return true;
             }
@@ -198,7 +207,7 @@ public class ChatListener
     {
         if (m.contains("%s%") && init + 1000L < Minecraft.getSystemTime() && LabyMod.getInstance().isInGame())
         {
-            Minecraft.getMinecraft().getSoundHandler().playSound(new PositionedSoundRecord(new ResourceLocation("note.bassattack"), 5.0F, 1.0F, (float)Minecraft.getMinecraft().thePlayer.posX, (float)Minecraft.getMinecraft().thePlayer.posY, (float)Minecraft.getMinecraft().thePlayer.posZ));
+            Minecraft.getMinecraft().getSoundHandler().playSound(new PositionedSoundRecord(soundLocation, 5.0F, 1.0F, (float)Minecraft.getMinecraft().thePlayer.posX, (float)Minecraft.getMinecraft().thePlayer.posY, (float)Minecraft.getMinecraft().thePlayer.posZ));
         }
     }
 

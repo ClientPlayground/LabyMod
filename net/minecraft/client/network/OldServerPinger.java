@@ -93,11 +93,7 @@ public class OldServerPinger
                         server.version = 0;
                     }
 
-                    if (serverstatusresponse.getPlayerCountData() == null)
-                    {
-                        server.populationInfo = EnumChatFormatting.DARK_GRAY + "???";
-                    }
-                    else
+                    if (serverstatusresponse.getPlayerCountData() != null)
                     {
                         server.populationInfo = EnumChatFormatting.GRAY + "" + serverstatusresponse.getPlayerCountData().getOnlinePlayerCount() + "" + EnumChatFormatting.DARK_GRAY + "/" + EnumChatFormatting.GRAY + serverstatusresponse.getPlayerCountData().getMaxPlayers();
 
@@ -127,6 +123,10 @@ public class OldServerPinger
 
                             server.playerList = stringbuilder.toString();
                         }
+                    }
+                    else
+                    {
+                        server.populationInfo = EnumChatFormatting.DARK_GRAY + "???";
                     }
 
                     if (serverstatusresponse.getFavicon() != null)
@@ -243,7 +243,7 @@ public class OldServerPinger
                             if (short1 == 255)
                             {
                                 String s = new String(p_channelRead0_2_.readBytes(p_channelRead0_2_.readShort() * 2).array(), Charsets.UTF_16BE);
-                                String[] astring = (String[])((String[])Iterables.toArray(OldServerPinger.PING_RESPONSE_SPLITTER.split(s), String.class));
+                                String[] astring = (String[])Iterables.toArray(OldServerPinger.PING_RESPONSE_SPLITTER.split(s), String.class);
 
                                 if ("\u00a71".equals(astring[0]))
                                 {

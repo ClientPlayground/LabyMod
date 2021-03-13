@@ -4,7 +4,6 @@ import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
-import de.labystudio.labymod.Timings;
 
 public class SpotifyManager
 {
@@ -139,7 +138,6 @@ public class SpotifyManager
         {
             if (this.getWndeNumProc() != null)
             {
-                Timings.start("Spotify update Title");
                 this.set = false;
                 (new SpotifyThread(this.getSpotifyUser32(), this.getWndeNumProc(), new SpotifyCallback()
                 {
@@ -151,7 +149,6 @@ public class SpotifyManager
                         }
                     }
                 })).start();
-                Timings.stop("Spotify update Title");
             }
         }
     }

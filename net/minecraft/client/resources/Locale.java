@@ -24,7 +24,6 @@ public class Locale
     /**
      * par2 is a list of languages. For each language $L and domain $D, attempts to load the resource $D:lang/$L.lang
      */
-
     public synchronized void loadLocaleDataFiles(IResourceManager resourceManager, List<String> p_135022_2_)
     {
         this.properties.clear();

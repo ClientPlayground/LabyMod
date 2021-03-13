@@ -1,8 +1,6 @@
 package de.labystudio.handling;
 
-import de.labystudio.labymod.Timings;
 import de.labystudio.packets.Packet;
-import de.labystudio.packets.PacketBanned;
 import de.labystudio.packets.PacketChatVisibilityChange;
 import de.labystudio.packets.PacketDisconnect;
 import de.labystudio.packets.PacketEncryptionRequest;
@@ -18,6 +16,7 @@ import de.labystudio.packets.PacketLoginRequest;
 import de.labystudio.packets.PacketLoginTime;
 import de.labystudio.packets.PacketLoginVersion;
 import de.labystudio.packets.PacketMessage;
+import de.labystudio.packets.PacketMessages;
 import de.labystudio.packets.PacketMojangStatus;
 import de.labystudio.packets.PacketPing;
 import de.labystudio.packets.PacketPlayAcceptFriendRequest;
@@ -46,9 +45,7 @@ public abstract class PacketHandler extends SimpleChannelInboundHandler<Object>
 
     private void handlePacket(Packet packet)
     {
-        Timings.start("HandlePacket " + packet.getClass().getSimpleName());
         packet.handle(this);
-        Timings.stop("HandlePacket " + packet.getClass().getSimpleName());
     }
 
     public abstract void handle(PacketLoginData var1);
@@ -73,7 +70,7 @@ public abstract class PacketHandler extends SimpleChannelInboundHandler<Object>
 
     public abstract void handle(PacketLoginRequest var1);
 
-    public abstract void handle(PacketBanned var1);
+    public abstract void handle(PacketMessages var1);
 
     public abstract void handle(PacketPing var1);
 

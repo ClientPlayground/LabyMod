@@ -13,8 +13,6 @@ import de.labystudio.chat.TitleChatComponent;
 import de.labystudio.gui.extras.ModGuiTextField;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
 import de.labystudio.language.L;
 import de.labystudio.packets.EnumConnectionState;
 import de.labystudio.packets.PacketPlayChangeOptions;
@@ -25,7 +23,6 @@ import de.labystudio.packets.PacketPlayServerStatus;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
 import de.labystudio.utils.LOGO;
-import de.labystudio.utils.ModGui;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -36,12 +33,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.TargetDataLine;
-import javax.sound.sampled.AudioFileFormat.Type;
-import javax.sound.sampled.DataLine.Info;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -56,9 +48,7 @@ public class GuiOnlineChat extends GuiMenuScreen
     DateFormat df = new SimpleDateFormat("HH:mm");
     DrawUtils draw;
     int copyLine = 0;
-    long micCooldown = 0L;
     long switchScreen = 0L;
-    boolean recording = false;
     GuiButton reconButton;
     GuiButton showSettingsButton;
     GuiButton showFileSharingButton;
@@ -91,13 +81,6 @@ public class GuiOnlineChat extends GuiMenuScreen
     int chatLastY = 0;
     List<MessageChatComponent> chatlogList = new ArrayList();
     TargetDataLine micLine;
-    File currentAudioFile;
-    int micLevel = 0;
-    int micLastLevel = 0;
-    int changeCount = 0;
-    int smoothLevel = 0;
-    double result = 0.0D;
-    int micTimer = 0;
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
     int PSSizeX = 120;
     int PSSizeY = 55;
@@ -137,7 +120,6 @@ public class GuiOnlineChat extends GuiMenuScreen
      */
     public void initGui()
     {
-        Timings.start("LabyMod Chat init");
         Keyboard.enableRepeatEvents(true);
         this.scrollFriendList = 0;
         this.scrollScreenBrowser = 0;
@@ -155,14 +137,14 @@ public class GuiOnlineChat extends GuiMenuScreen
             this.searchFriendsArea.setFocused(true);
         }
 
-        this.chatArea = new GuiTextField(-1, this.fontRendererObj, 185, this.height - 24, this.width - 224, 18);
+        this.chatArea = new GuiTextField(-1, this.fontRendererObj, 140, this.height - 24, this.width - 178, 18);
         this.chatArea.setMaxStringLength(120);
+        this.chatArea.setFocused(true);
         this.motdEditor = new GuiTextField(-1, this.fontRendererObj, 145, 111, 218, 20);
         this.motdEditor.setMaxStringLength(70);
         this.motdEditor.setText(ConfigManager.settings.motd);
         this.refreshButtons();
         this.updateChatlog();
-        Timings.stop("LabyMod Chat init");
     }
 
     private void refreshButtons()
@@ -178,27 +160,21 @@ public class GuiOnlineChat extends GuiMenuScreen
         }
         else if (this.friendFinder)
         {
-            this.friendSelectButton = new GuiButton(8, this.width / 2 + 5, this.height / 2 + 15, 87, 20, L._("gui_chat_sendrequest", new Object[0]));
+            this.friendSelectButton = new GuiButton(8, this.width / 2 + 5, this.height / 2 + 15, 87, 20, L.f("gui_chat_sendrequest", new Object[0]));
             this.buttonList.add(this.friendSelectButton);
-            GuiButton guibutton3 = new GuiButton(6, this.width / 2 - 90 - 1, this.height / 2 + 15, 90, 20, L._("button_cancel", new Object[0]));
+            GuiButton guibutton3 = new GuiButton(6, this.width / 2 - 90 - 1, this.height / 2 + 15, 90, 20, L.f("button_cancel", new Object[0]));
             this.buttonList.add(guibutton3);
         }
         else
         {
             if (LabyMod.getInstance().selectedPlayer != null)
             {
-                this.showFileSharingButton = new GuiButton(1, 140, this.height - 25, 20, 20, "+");
-                this.showFileSharingButton.enabled = false;
-                this.buttonList.add(this.showFileSharingButton);
-                this.micButton = new GuiButton(2, 161, this.height - 25, 21, 20, "");
-                this.micButton.enabled = false;
-                this.buttonList.add(this.micButton);
-                this.sendButton = new GuiButton(3, this.width - 35, this.height - 25, 30, 20, L._("gui_chat_send", new Object[0]));
+                this.sendButton = new GuiButton(3, this.width - 35, this.height - 25, 30, 20, L.f("gui_chat_send", new Object[0]));
                 this.buttonList.add(this.sendButton);
 
                 if (LabyMod.getInstance().selectedPlayer instanceof LabyModPlayerRequester)
                 {
-                    GuiButton guibutton = new GuiButton(10, (this.width - 140) / 2 + 2 + 140, this.height / 2 + 15, 90, 20, Color.cl("a") + L._("gui_chat_accept", new Object[0]));
+                    GuiButton guibutton = new GuiButton(10, (this.width - 140) / 2 + 2 + 140, this.height / 2 + 15, 90, 20, Color.cl("a") + L.f("gui_chat_accept", new Object[0]));
 
                     if (this.stopSpam)
                     {
@@ -206,7 +182,7 @@ public class GuiOnlineChat extends GuiMenuScreen
                     }
 
                     this.buttonList.add(guibutton);
-                    guibutton = new GuiButton(9, (this.width - 140) / 2 - 92 + 140, this.height / 2 + 15, 90, 20, Color.cl("c") + L._("gui_chat_deny", new Object[0]));
+                    guibutton = new GuiButton(9, (this.width - 140) / 2 - 92 + 140, this.height / 2 + 15, 90, 20, Color.cl("c") + L.f("gui_chat_deny", new Object[0]));
 
                     if (this.stopSpam)
                     {
@@ -218,24 +194,24 @@ public class GuiOnlineChat extends GuiMenuScreen
 
                 if (this.YesNoBox)
                 {
-                    GuiButton guibutton1 = new GuiButton(12, this.width / 2 - 95, this.height / 2 + 25, 90, 20, Color.cl("c") + L._("status_no", new Object[0]));
+                    GuiButton guibutton1 = new GuiButton(12, this.width / 2 - 95, this.height / 2 + 25, 90, 20, Color.cl("c") + L.f("status_no", new Object[0]));
                     this.buttonList.add(guibutton1);
-                    guibutton1 = new GuiButton(13, this.width / 2 + 5, this.height / 2 + 25, 90, 20, Color.cl("a") + L._("status_yes", new Object[0]));
+                    guibutton1 = new GuiButton(13, this.width / 2 + 5, this.height / 2 + 25, 90, 20, Color.cl("a") + L.f("status_yes", new Object[0]));
                     this.buttonList.add(guibutton1);
                 }
             }
             else
             {
-                GuiButton guibutton2 = new GuiButton(11, 143, 135, 130, 20, L._("gui_chat_showmyip", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.showConntectedIP));
+                GuiButton guibutton2 = new GuiButton(11, 143, 135, 130, 20, L.f("gui_chat_showmyip", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.showConntectedIP));
                 this.buttonList.add(guibutton2);
-                guibutton2 = new GuiButton(14, 275, 135, 90, 20, L._("gui_chat_showalerts", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.alertsChat));
+                guibutton2 = new GuiButton(14, 275, 135, 90, 20, L.f("gui_chat_showalerts", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.alertsChat));
                 this.buttonList.add(guibutton2);
-                guibutton2 = new GuiButton(15, 143, 157, 130, 20, L._("gui_chat_showplayingalerts", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.alertsPlayingOn));
+                guibutton2 = new GuiButton(15, 143, 157, 130, 20, L.f("gui_chat_showplayingalerts", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.alertsPlayingOn));
                 guibutton2.enabled = ConfigManager.settings.alertsChat;
                 this.buttonList.add(guibutton2);
-                guibutton2 = new GuiButton(17, 275, 157, 90, 20, L._("gui_chat_playsounds", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.playSounds));
+                guibutton2 = new GuiButton(17, 275, 157, 90, 20, L.f("gui_chat_playsounds", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.playSounds));
                 this.buttonList.add(guibutton2);
-                guibutton2 = new GuiButton(19, 143, 179, 130, 20, L._("gui_chat_ignorerequests", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.ignoreRequests));
+                guibutton2 = new GuiButton(19, 143, 179, 130, 20, L.f("gui_chat_ignorerequests", new Object[0]) + ": " + this.colorBoolean(ConfigManager.settings.ignoreRequests));
                 this.buttonList.add(guibutton2);
 
                 if (LOGO.isLogo(LabyMod.getInstance().getPlayerName()))
@@ -247,8 +223,8 @@ public class GuiOnlineChat extends GuiMenuScreen
 
             this.showSettingsButton = new GuiButton(0, 7, 68, 20, 20, "!");
             this.buttonList.add(this.showSettingsButton);
-            this.addFriendScreenButton = new GuiButton(7, this.width - 66 - 4, 3, 67, 20, L._("gui_chat_addfriend", new Object[0]));
-            this.addFriendScreenButton.width = this.draw.getStringWidth(this.addFriendScreenButton.displayString) + 10;
+            String s = L.f("gui_chat_addfriend", new Object[0]);
+            this.addFriendScreenButton = new GuiButton(7, this.width - 66 - 4, 3, this.draw.getStringWidth(s) + 10, 20, s);
             this.addFriendScreenButton.xPosition = this.width - this.draw.getStringWidth(this.addFriendScreenButton.displayString) - 10 - 4;
             this.buttonList.add(this.addFriendScreenButton);
             this.playerStatusButton = new GuiButton(16, this.width - this.draw.getStringWidth(this.addFriendScreenButton.displayString) - 45 - 4, 3, 35, 20, "?");
@@ -264,7 +240,7 @@ public class GuiOnlineChat extends GuiMenuScreen
 
     private String colorBoolean(boolean b)
     {
-        return b ? Color.cl("a") + L._("status_yes", new Object[0]) : Color.cl("c") + L._("status_no", new Object[0]);
+        return b ? Color.cl("a") + L.f("status_yes", new Object[0]) : Color.cl("c") + L.f("status_no", new Object[0]);
     }
 
     /**
@@ -329,7 +305,6 @@ public class GuiOnlineChat extends GuiMenuScreen
             this.drawRequestScreen();
             this.drawYesNoBox();
             super.drawScreen(mouseX, mouseY, partialTicks);
-            this.drawMic();
             this.drawSettingsBox();
             this.drawStatusBox();
             this.drawFileSharingBox();
@@ -348,7 +323,6 @@ public class GuiOnlineChat extends GuiMenuScreen
 
     private void updateButtons()
     {
-        Timings.start("LabyMod Chat update buttons");
         this.updateReconnectButton();
         this.updateShowSettingsButton();
         this.updateShowFileSharingButton();
@@ -358,7 +332,6 @@ public class GuiOnlineChat extends GuiMenuScreen
         this.updateAddFriendScreenButton();
         this.updateSettingsButton();
         this.updateStatusButton();
-        Timings.stop("LabyMod Chat update buttons");
     }
 
     private void updateStatusButton()
@@ -367,17 +340,17 @@ public class GuiOnlineChat extends GuiMenuScreen
         {
             if (ChatHandler.playerStatus == 0)
             {
-                this.playerStatusButton.displayString = Color.cl("a") + L._("gui_chat_status_online", new Object[0]);
+                this.playerStatusButton.displayString = Color.cl("a") + L.f("gui_chat_status_online", new Object[0]);
             }
 
             if (ChatHandler.playerStatus == 1)
             {
-                this.playerStatusButton.displayString = Color.cl("b") + L._("gui_chat_status_away", new Object[0]);
+                this.playerStatusButton.displayString = Color.cl("b") + L.f("gui_chat_status_away", new Object[0]);
             }
 
             if (ChatHandler.playerStatus == 2)
             {
-                this.playerStatusButton.displayString = Color.cl("d") + L._("gui_chat_status_busy", new Object[0]);
+                this.playerStatusButton.displayString = Color.cl("d") + L.f("gui_chat_status_busy", new Object[0]);
             }
 
             this.playerStatusButton.enabled = !this.showStatusBox;
@@ -472,7 +445,7 @@ public class GuiOnlineChat extends GuiMenuScreen
     private String getConnectionStatus()
     {
         EnumConnectionState enumconnectionstate = LabyMod.getInstance().client.getClientConnection().getState();
-        return enumconnectionstate == EnumConnectionState.PLAY ? Color.cl("a") + L._("gui_chat_connection_connected", new Object[0]) + Color.cl("f") : (enumconnectionstate == EnumConnectionState.HELLO ? Color.cl("c") + L._("gui_chat_connection_connecting", new Object[0]) + Color.cl("f") : (enumconnectionstate == EnumConnectionState.LOGIN ? Color.cl("c") + L._("gui_chat_connection_loggingin", new Object[0]) + Color.cl("f") : Color.cl("4") + L._("gui_chat_connection_notconnected", new Object[0]) + Color.cl("f")));
+        return enumconnectionstate == EnumConnectionState.PLAY ? Color.cl("a") + L.f("gui_chat_connection_connected", new Object[0]) + Color.cl("f") : (enumconnectionstate == EnumConnectionState.HELLO ? Color.cl("c") + L.f("gui_chat_connection_connecting", new Object[0]) + Color.cl("f") : (enumconnectionstate == EnumConnectionState.LOGIN ? Color.cl("c") + L.f("gui_chat_connection_loggingin", new Object[0]) + Color.cl("f") : Color.cl("4") + L.f("gui_chat_connection_notconnected", new Object[0]) + Color.cl("f")));
     }
 
     private void updateShowSettingsButton()
@@ -512,11 +485,11 @@ public class GuiOnlineChat extends GuiMenuScreen
     {
         if (LabyMod.getInstance().client.getClientConnection().getState() == EnumConnectionState.PLAY)
         {
-            this.reconButton.displayString = L._("gui_chat_logout", new Object[0]);
+            this.reconButton.displayString = L.f("gui_chat_logout", new Object[0]);
         }
         else
         {
-            this.reconButton.displayString = L._("gui_chat_login", new Object[0]);
+            this.reconButton.displayString = L.f("gui_chat_login", new Object[0]);
         }
 
         this.reconButton.enabled = LabyMod.getInstance().lastRecon + 5000L < System.currentTimeMillis();
@@ -525,18 +498,18 @@ public class GuiOnlineChat extends GuiMenuScreen
         {
             if (LabyMod.getInstance().client.getClientConnection().getState() == EnumConnectionState.PLAY)
             {
-                this.reconButton.displayString = L._("gui_chat_loggedin", new Object[0]);
+                this.reconButton.displayString = L.f("gui_chat_loggedin", new Object[0]);
             }
             else
             {
-                this.reconButton.displayString = L._("gui_chat_loggedout", new Object[0]);
+                this.reconButton.displayString = L.f("gui_chat_loggedout", new Object[0]);
             }
         }
 
         if (LabyMod.getInstance().client.getClientConnection().getState() == EnumConnectionState.LOGIN)
         {
             this.reconButton.enabled = false;
-            this.reconButton.displayString = L._("gui_chat_pleasewait", new Object[0]);
+            this.reconButton.displayString = L.f("gui_chat_pleasewait", new Object[0]);
         }
     }
 
@@ -545,9 +518,9 @@ public class GuiOnlineChat extends GuiMenuScreen
         if (this.YesNoBox)
         {
             this.draw.drawBox(this.width / 2 - 100, this.height / 2 - 20, this.width / 2 + 100, this.height / 2 + 50);
-            this.draw.drawCenteredString(Color.cl("c") + L._("gui_chat_warning", new Object[0]), this.width / 2, this.height / 2 - 13);
-            this.draw.drawCenteredString(L._("gui_chat_removequestion_line1", new Object[0]), this.width / 2, this.height / 2 - 2);
-            this.draw.drawCenteredString(L._("gui_chat_removequestion_line2", new Object[] {this.showPlayerSettingsPlayer.getName()}), this.width / 2, this.height / 2 + 8);
+            this.draw.drawCenteredString(Color.cl("c") + L.f("gui_chat_warning", new Object[0]), this.width / 2, this.height / 2 - 13);
+            this.draw.drawCenteredString(L.f("gui_chat_removequestion_line1", new Object[0]), this.width / 2, this.height / 2 - 2);
+            this.draw.drawCenteredString(L.f("gui_chat_removequestion_line2", new Object[] {this.showPlayerSettingsPlayer.getName()}), this.width / 2, this.height / 2 + 8);
         }
     }
 
@@ -564,18 +537,18 @@ public class GuiOnlineChat extends GuiMenuScreen
             GL11.glTranslated(79.2D, 10.0D, 0.0D);
             this.draw.drawString(Color.cl("b") + Color.cl("l") + LabyMod.getInstance().getPlayerName(), 183.0D, 28.0D);
             GL11.glPopMatrix();
-            this.draw.drawString(L._("gui_chat_personalmessage", new Object[0]) + ":", 145.0D, 98.0D);
+            this.draw.drawString(L.f("gui_chat_personalmessage", new Object[0]) + ":", 145.0D, 98.0D);
             this.motdEditor.drawTextBox();
 
             if (this.isConnected())
             {
-                this.draw.drawString(L._("gui_chat_contacts", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().client.build().getContactsAmount(), 210.0D, 53.0D);
+                this.draw.drawString(L.f("gui_chat_contacts", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().client.build().getContactsAmount(), 210.0D, 53.0D);
 
                 if (LabyMod.getInstance().draw.getHeight() > 260)
                 {
-                    this.draw.drawString(L._("gui_chat_datejoined", new Object[0]) + ":", 150.0D, 208.0D);
+                    this.draw.drawString(L.f("gui_chat_datejoined", new Object[0]) + ":", 150.0D, 208.0D);
                     this.draw.drawString(this.buildDate(LabyMod.getInstance().client.build().getJoinedFirst()), 150.0D, 219.0D);
-                    this.draw.drawString(L._("gui_chat_lasttimeonline", new Object[0]) + ":", 270.0D, 208.0D);
+                    this.draw.drawString(L.f("gui_chat_lasttimeonline", new Object[0]) + ":", 270.0D, 208.0D);
                     this.draw.drawString(this.buildDate(LabyMod.getInstance().client.build().getLastOnline()), 270.0D, 219.0D);
                 }
             }
@@ -589,9 +562,16 @@ public class GuiOnlineChat extends GuiMenuScreen
 
     public String buildDate(long time)
     {
-        Date date = new Date(time);
-        DateFormat dateformat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        return Color.cl("7") + dateformat.format(date);
+        if (time == 0L)
+        {
+            return Color.cl("7") + "Unknown";
+        }
+        else
+        {
+            Date date = new Date(time);
+            DateFormat dateformat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            return Color.cl("7") + dateformat.format(date);
+        }
     }
 
     private void drawPlayerInfo()
@@ -609,28 +589,28 @@ public class GuiOnlineChat extends GuiMenuScreen
             d0 = 1.2D;
             GL11.glScaled(d0, d0, d0);
             this.drawStatusSymbol(LabyMod.getInstance().selectedPlayer.getStatus(), LabyMod.getInstance().selectedPlayer.isRequest(), (int)((double)(this.width / 2 - 40) / d0), (int)((double)(this.height / 2) / d0 - 34.0D));
-            String s = Color.cl("e") + L._("gui_chat_status_request", new Object[0]);
+            String s = Color.cl("e") + L.f("gui_chat_status_request", new Object[0]);
 
             if (!LabyMod.getInstance().selectedPlayer.isRequest())
             {
                 if (LabyMod.getInstance().selectedPlayer.getStatus() == LabyModPlayer.OnlineStatus.ONLINE)
                 {
-                    s = Color.cl("2") + L._("gui_chat_status_online", new Object[0]);
+                    s = Color.cl("2") + L.f("gui_chat_status_online", new Object[0]);
                 }
 
                 if (LabyMod.getInstance().selectedPlayer.getStatus() == LabyModPlayer.OnlineStatus.AWAY)
                 {
-                    s = Color.cl("b") + L._("gui_chat_status_away", new Object[0]);
+                    s = Color.cl("b") + L.f("gui_chat_status_away", new Object[0]);
                 }
 
                 if (LabyMod.getInstance().selectedPlayer.getStatus() == LabyModPlayer.OnlineStatus.BUSY)
                 {
-                    s = Color.cl("d") + L._("gui_chat_status_busy", new Object[0]);
+                    s = Color.cl("d") + L.f("gui_chat_status_busy", new Object[0]);
                 }
 
                 if (LabyMod.getInstance().selectedPlayer.getStatus() == LabyModPlayer.OnlineStatus.OFFLINE)
                 {
-                    s = Color.cl("4") + L._("gui_chat_status_offline", new Object[0]);
+                    s = Color.cl("4") + L.f("gui_chat_status_offline", new Object[0]);
                 }
             }
 
@@ -646,26 +626,26 @@ public class GuiOnlineChat extends GuiMenuScreen
 
             if (LabyMod.getInstance().selectedPlayer.isOnline() && LabyMod.getInstance().selectedPlayer.getContactsAmount() != 0)
             {
-                this.draw.drawString(L._("gui_chat_contacts", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getContactsAmount(), (double)(this.width / 2 - 40), (double)(this.height / 2 - 13));
+                this.draw.drawString(L.f("gui_chat_contacts", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getContactsAmount(), (double)(this.width / 2 - 40), (double)(this.height / 2 - 13));
             }
 
             if (!LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp().replace(" ", "").isEmpty() && LabyMod.getInstance().selectedPlayer.isOnline())
             {
                 if (LabyMod.getInstance().selectedPlayer.getServerInfo().getSpecifiedServerName() != null)
                 {
-                    this.draw.drawString(L._("gui_chat_server", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp() + " (" + LabyMod.getInstance().selectedPlayer.getServerInfo().getSpecifiedServerName() + ")", (double)(this.width / 2 - 40), (double)(this.height / 2 - 3));
+                    this.draw.drawString(L.f("gui_chat_server", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp() + " (" + LabyMod.getInstance().selectedPlayer.getServerInfo().getSpecifiedServerName() + ")", (double)(this.width / 2 - 40), (double)(this.height / 2 - 3));
                 }
                 else
                 {
-                    this.draw.drawString(L._("gui_chat_server", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp(), (double)(this.width / 2 - 40), (double)(this.height / 2 - 3));
+                    this.draw.drawString(L.f("gui_chat_server", new Object[0]) + ": " + Color.cl("7") + LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp(), (double)(this.width / 2 - 40), (double)(this.height / 2 - 3));
                 }
             }
 
             if (!LabyMod.getInstance().selectedPlayer.isRequest())
             {
-                this.draw.drawString(L._("gui_chat_datejoined", new Object[0]) + ":", (double)(this.width / 2 - 40), (double)(this.height / 2 + 12));
+                this.draw.drawString(L.f("gui_chat_datejoined", new Object[0]) + ":", (double)(this.width / 2 - 40), (double)(this.height / 2 + 12));
                 this.draw.drawString(this.buildDate(LabyMod.getInstance().selectedPlayer.getJoinedFirst()), (double)(this.width / 2 - 40), (double)(this.height / 2 + 23));
-                this.draw.drawString(L._("gui_chat_lasttimeonline", new Object[0]) + ":", (double)(this.width / 2 - 40), (double)(this.height / 2 + 37));
+                this.draw.drawString(L.f("gui_chat_lasttimeonline", new Object[0]) + ":", (double)(this.width / 2 - 40), (double)(this.height / 2 + 37));
                 this.draw.drawString(this.buildDate(LabyMod.getInstance().selectedPlayer.getLastOnline()), (double)(this.width / 2 - 40), (double)(this.height / 2 + 48));
             }
         }
@@ -713,6 +693,7 @@ public class GuiOnlineChat extends GuiMenuScreen
                             String s = this.fixLine(this.chatArea.getText());
                             s = s.replace("\'", "\u00b4");
                             this.chatArea.setText("");
+                            this.chatArea.setCursorPositionEnd();
                             SingleChat singlechat = ChatHandler.getHandler().getChat(LabyMod.getInstance().selectedPlayer);
 
                             if (LabyMod.getInstance().client.getClientConnection().isNextDay(singlechat.getMessages()))
@@ -748,7 +729,7 @@ public class GuiOnlineChat extends GuiMenuScreen
                     {
                         l = k - 20;
                         this.chatLastY = l - 20;
-                        this.draw.drawString(Color.cl("3") + L._("gui_chat_typing", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}), (double)i, (double)(this.chatLastY + 37));
+                        this.draw.drawString(Color.cl("3") + L.f("gui_chat_typing", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}), (double)i, (double)(this.chatLastY + 37));
                     }
 
                     for (MessageChatComponent messagechatcomponent : list)
@@ -866,197 +847,11 @@ public class GuiOnlineChat extends GuiMenuScreen
         return d0 / (double)d.length;
     }
 
-    private void enableMic()
-    {
-        try
-        {
-            AudioFormat audioformat = new AudioFormat(20000.0F, 16, 1, true, true);
-            TargetDataLine targetdataline = AudioSystem.getTargetDataLine(audioformat);
-            Info info = new Info(TargetDataLine.class, audioformat);
-            this.micLine = (TargetDataLine)AudioSystem.getLine(info);
-            this.micLine.open();
-            this.micLine.start();
-            this.currentAudioFile = this.createNewAudioFile();
-            (new GuiOnlineChat.rec()).start();
-        }
-        catch (Exception var4)
-        {
-            ;
-        }
-    }
-
     private void drawInfo(String title, String message)
     {
         this.draw.drawBox(this.width / 3, this.height / 2 - 20, this.width / 3 * 2, this.height / 2 + 20);
         this.draw.drawCenteredString(Color.cl("c") + title, this.width / 2, this.height / 2 - 14);
         this.draw.drawCenteredString(message, this.width / 2, this.height / 2);
-    }
-
-    private void drawMic()
-    {
-        try
-        {
-            if (this.micButton == null)
-            {
-                return;
-            }
-
-            if (LabyMod.getInstance().selectedPlayer != null)
-            {
-                GlStateManager.color(1.0F, 1.0F, 1.0F);
-                GL11.glPushMatrix();
-                GL11.glScaled(0.92D, 0.92D, 1.1D);
-                GL11.glTranslated(14.9D, (double)(this.height / 10 - 3), 0.0D);
-
-                if (this.recording)
-                {
-                    GL11.glColor4d(2.0D, 0.3D, 0.3D, 1.0D);
-                }
-
-                if (!this.micButton.enabled)
-                {
-                    GL11.glColor4d(1.3D, 1.0D, 1.1D, 0.5D);
-                }
-
-                this.mc.getTextureManager().bindTexture(LabyMod.getInstance().texture_mic);
-                this.drawTexturedModalRect(166, this.height - 23, 0, 0, 13, 13);
-                GL11.glPopMatrix();
-            }
-
-            if (this.micLine != null)
-            {
-                int i = this.calcMicLevel();
-                int j = java.awt.Color.GREEN.getRGB();
-
-                if (i > 7)
-                {
-                    j = java.awt.Color.ORANGE.getRGB();
-                }
-
-                if (i > 10)
-                {
-                    j = java.awt.Color.RED.getRGB();
-                }
-
-                DrawUtils drawutils = this.draw;
-                DrawUtils.drawRect(164, this.height - 145, 250, this.height - 39, Integer.MIN_VALUE);
-                this.draw.drawBox(164, this.height - 145, 176, this.height - 39);
-                this.drawGradientRect(165, this.height - 40 - i * 5, 175, this.height - 40, j, java.awt.Color.GREEN.getRGB());
-                this.draw.drawString(Color.cl("c") + "Recording.. ", 180.0D, (double)(this.height - 140));
-                this.draw.drawString("" + ModGui.truncateTo(((double)this.micLine.getFramePosition() + 0.0D) / (double)this.micLine.getFormat().getFrameRate(), 1) + " sec", 180.0D, (double)(this.height - 140 + 10));
-
-                if (this.micLine.getFramePosition() / 10000 / 2 > 60)
-                {
-                    this.recording = false;
-                }
-
-                if (!this.recording && this.micLine != null)
-                {
-                    this.micCooldown = System.currentTimeMillis();
-
-                    if (this.micLine.getFramePosition() / 10000 / 2 < 1)
-                    {
-                        this.micLine.stop();
-                        this.micLine.close();
-
-                        if (ConfigManager.settings.chatAlertType)
-                        {
-                            if (ConfigManager.settings.alertsChat)
-                            {
-                                LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + "Recording is too short!");
-                            }
-                        }
-                        else
-                        {
-                            LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, "Recording is too short!", EnumAlertType.CHAT);
-                        }
-                    }
-                    else
-                    {
-                        this.micLine.stop();
-                        this.micLine.close();
-                        LabyModPlayer labymodplayer = LabyMod.getInstance().selectedPlayer;
-
-                        if (labymodplayer == null)
-                        {
-                            this.currentAudioFile.delete();
-                        }
-                    }
-
-                    this.micLine = null;
-                    this.currentAudioFile = null;
-                }
-            }
-        }
-        catch (Exception var4)
-        {
-            ;
-        }
-    }
-
-    private int calcMicLevel()
-    {
-        (new GuiOnlineChat.level()).start();
-        int i = this.micLevel - this.micLastLevel;
-
-        if (i < 0)
-        {
-            i *= -1;
-        }
-
-        if (i > 5)
-        {
-            ++this.changeCount;
-        }
-
-        if (this.micTimer > 3)
-        {
-            this.micTimer = 0;
-            this.result = (double)this.changeCount;
-            this.changeCount = 0;
-            --this.smoothLevel;
-        }
-
-        ++this.micTimer;
-        this.micLastLevel = this.micLevel;
-
-        if ((double)this.smoothLevel > this.result * 10.0D)
-        {
-            --this.smoothLevel;
-        }
-
-        if ((double)this.smoothLevel < this.result * 5.0D)
-        {
-            ++this.smoothLevel;
-        }
-
-        if (this.smoothLevel > 18)
-        {
-            this.smoothLevel = 18;
-        }
-
-        return this.smoothLevel;
-    }
-
-    private int calculateRMSLevel(byte[] audioData)
-    {
-        long i = 0L;
-
-        for (int j = 0; j < audioData.length; ++j)
-        {
-            i += (long)audioData[j];
-        }
-
-        double d1 = (double)(i / (long)audioData.length);
-        double d0 = 0.0D;
-
-        for (int k = 0; k < audioData.length; ++k)
-        {
-            d0 += Math.pow((double)audioData[k] - d1, 2.0D);
-        }
-
-        double d2 = d0 / (double)audioData.length;
-        return (int)(Math.pow(d2, 0.5D) + 0.5D);
     }
 
     private static File getTimestampedPNGFileForDirectory(File gameDirectory)
@@ -1077,24 +872,11 @@ public class GuiOnlineChat extends GuiMenuScreen
         }
     }
 
-    public File createNewAudioFile()
-    {
-        File file1 = new File(Source.file_Chatlog + "/media/");
-
-        if (!file1.exists())
-        {
-            file1.mkdirs();
-        }
-
-        return getTimestampedPNGFileForDirectory(file1);
-    }
-
     /**
      * Called when a mouse button is released.  Args : mouseX, mouseY, releaseButton
      */
     protected void mouseReleased(int mouseX, int mouseY, int state)
     {
-        this.recording = false;
         this.comRelease(mouseX, mouseY, state);
         super.mouseReleased(mouseX, mouseY, state);
     }
@@ -1151,8 +933,7 @@ public class GuiOnlineChat extends GuiMenuScreen
 
             if (button.id == 2)
             {
-                this.recording = true;
-                this.enableMic();
+                ;
             }
 
             if (button.id == 5)
@@ -1234,29 +1015,17 @@ public class GuiOnlineChat extends GuiMenuScreen
                     {
                         LabyMod.getInstance().client.getClientConnection().sendPacket(new PacketPlayFriendRemove(this.showPlayerSettingsPlayer));
                     }
-
-                    if (ConfigManager.settings.chatAlertType)
-                    {
-                        if (ConfigManager.settings.alertsChat)
-                        {
-                            LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("e") + L._("", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}));
-                        }
-                    }
-                    else
-                    {
-                        LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.INFO, L._("", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}), EnumAlertType.CHAT);
-                    }
                 }
                 else if (ConfigManager.settings.chatAlertType)
                 {
                     if (ConfigManager.settings.alertsChat)
                     {
-                        LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L._("gui_chat_message_offline", new Object[0]));
+                        LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L.f("gui_chat_message_offline", new Object[0]));
                     }
                 }
                 else
                 {
-                    LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L._("gui_chat_message_offline", new Object[0]), EnumAlertType.CHAT);
+                    LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L.f("gui_chat_message_offline", new Object[0]), EnumAlertType.CHAT);
                 }
 
                 this.YesNoBox = false;
@@ -1309,18 +1078,17 @@ public class GuiOnlineChat extends GuiMenuScreen
             this.draw.drawBox(this.showPlayerSettingsX, this.showPlayerSettingsY, this.showPlayerSettingsX + this.PSSizeX, this.showPlayerSettingsY + this.PSSizeY);
             this.draw.drawString("Info", (double)(this.showPlayerSettingsX + 5), (double)(this.showPlayerSettingsY + 5));
             this.draw.drawString(this.followString(LabyMod.getInstance().selectedPlayer), (double)(this.showPlayerSettingsX + 5), (double)(this.showPlayerSettingsY + 17));
-            this.draw.drawString(L._("gui_chat_togglenotification", new Object[0]) + " " + this.notifyString(LabyMod.getInstance().selectedPlayer), (double)(this.showPlayerSettingsX + 5), (double)(this.showPlayerSettingsY + 29));
-            this.draw.drawString(L._("gui_chat_removecontact", new Object[0]), (double)(this.showPlayerSettingsX + 5), (double)(this.showPlayerSettingsY + 41));
+            this.draw.drawString(L.f("gui_chat_removecontact", new Object[0]), (double)(this.showPlayerSettingsX + 5), (double)(this.showPlayerSettingsY + 41));
         }
     }
 
     private String notifyString(LabyModPlayer p)
     {
-        String s = Color.cl("c") + "(" + L._("status_disabled", new Object[0]) + ")";
+        String s = Color.cl("c") + "(" + L.f("status_disabled", new Object[0]) + ")";
 
         if (p != null && p.isNotify())
         {
-            s = Color.cl("a") + "(" + L._("status_enabled", new Object[0]) + ")";
+            s = Color.cl("a") + "(" + L.f("status_enabled", new Object[0]) + ")";
         }
 
         return s;
@@ -1328,15 +1096,15 @@ public class GuiOnlineChat extends GuiMenuScreen
 
     private String followString(LabyModPlayer p)
     {
-        String s = L._("gui_chat_joinserver", new Object[0]) + " " + Color.cl("c") + "(" + L._("gui_chat_notplaying", new Object[0]) + ")";
+        String s = L.f("gui_chat_joinserver", new Object[0]) + " " + Color.cl("c") + "(" + L.f("gui_chat_notplaying", new Object[0]) + ")";
 
         if (p != null && !p.getServerInfo().getServerIp().replace(" ", "").isEmpty() && p.isOnline())
         {
-            s = L._("gui_chat_joinserver", new Object[0]) + " " + Color.cl("a") + "(" + p.getServerInfo().getServerIp() + ")";
+            s = L.f("gui_chat_joinserver", new Object[0]) + " " + Color.cl("a") + "(" + p.getServerInfo().getServerIp() + ")";
 
             if (p.getServerInfo().getServerIp().equalsIgnoreCase("Hidden"))
             {
-                s = L._("gui_chat_joinserver", new Object[0]) + " " + Color.cl("c") + "(" + L._("gui_chat_serverhidden", new Object[0]) + ")";
+                s = L.f("gui_chat_joinserver", new Object[0]) + " " + Color.cl("c") + "(" + L.f("gui_chat_serverhidden", new Object[0]) + ")";
             }
         }
 
@@ -1348,9 +1116,9 @@ public class GuiOnlineChat extends GuiMenuScreen
         if (this.showStatusBox)
         {
             this.draw.drawBox(this.showStatusX, this.showStatusY, this.showStatusX - this.SSSizeX, this.showStatusY + this.SSSizeY);
-            this.draw.drawString(Color.cl("a") + this.isStatus(0) + L._("gui_chat_status_online", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 5));
-            this.draw.drawString(Color.cl("b") + this.isStatus(1) + L._("gui_chat_status_away", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 17));
-            this.draw.drawString(Color.cl("d") + this.isStatus(2) + L._("gui_chat_status_busy", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 29));
+            this.draw.drawString(Color.cl("a") + this.isStatus(0) + L.f("gui_chat_status_online", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 5));
+            this.draw.drawString(Color.cl("b") + this.isStatus(1) + L.f("gui_chat_status_away", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 17));
+            this.draw.drawString(Color.cl("d") + this.isStatus(2) + L.f("gui_chat_status_busy", new Object[0]), (double)(this.showStatusX - this.SSSizeX + 5), (double)(this.showStatusY + 29));
         }
     }
 
@@ -1373,10 +1141,10 @@ public class GuiOnlineChat extends GuiMenuScreen
         if (this.showSettingsBox)
         {
             this.draw.drawBox(this.showSettingsX, this.showSettingsY, this.showSettingsX + this.SBSizeX, this.showSettingsY + this.SBSizeY);
-            this.draw.drawString(Color.cl("b") + this.isSettings(0) + L._("gui_chat_filter_all", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 5));
-            this.draw.drawString(Color.cl("a") + this.isSettings(1) + L._("gui_chat_filter_online", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 17));
-            this.draw.drawString(Color.cl("e") + this.isSettings(2) + L._("gui_chat_filter_requests", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 29));
-            this.draw.drawString(Color.cl("6") + this.isSettings(3) + L._("gui_chat_filter_recent", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 41));
+            this.draw.drawString(Color.cl("b") + this.isSettings(0) + L.f("gui_chat_filter_all", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 5));
+            this.draw.drawString(Color.cl("a") + this.isSettings(1) + L.f("gui_chat_filter_online", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 17));
+            this.draw.drawString(Color.cl("e") + this.isSettings(2) + L.f("gui_chat_filter_requests", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 29));
+            this.draw.drawString(Color.cl("6") + this.isSettings(3) + L.f("gui_chat_filter_recent", new Object[0]), (double)(this.showSettingsX + 5), (double)(this.showSettingsY + 41));
         }
     }
 
@@ -1411,12 +1179,12 @@ public class GuiOnlineChat extends GuiMenuScreen
                         {
                             if (ConfigManager.settings.alertsChat)
                             {
-                                LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L._("gui_chat_message_nofriends", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}));
+                                LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L.f("gui_chat_message_nofriends", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}));
                             }
                         }
                         else
                         {
-                            LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L._("gui_chat_message_nofriends", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}), EnumAlertType.CHAT);
+                            LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L.f("gui_chat_message_nofriends", new Object[] {LabyMod.getInstance().selectedPlayer.getName()}), EnumAlertType.CHAT);
                         }
                     }
                     else if (!LabyMod.getInstance().selectedPlayer.isOnline())
@@ -1425,12 +1193,12 @@ public class GuiOnlineChat extends GuiMenuScreen
                         {
                             if (ConfigManager.settings.alertsChat)
                             {
-                                LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L._("gui_chat_message_isoffline", new Object[0]));
+                                LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L.f("gui_chat_message_isoffline", new Object[0]));
                             }
                         }
                         else
                         {
-                            LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L._("gui_chat_message_isoffline", new Object[0]), EnumAlertType.CHAT);
+                            LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L.f("gui_chat_message_isoffline", new Object[0]), EnumAlertType.CHAT);
                         }
                     }
                     else if (LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp() != null && !LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp().replace(" ", "").isEmpty())
@@ -1441,29 +1209,29 @@ public class GuiOnlineChat extends GuiMenuScreen
                             {
                                 if (ConfigManager.settings.alertsChat)
                                 {
-                                    LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L._("gui_chat_message_cantfollow", new Object[0]));
+                                    LabyMod.getInstance().displayMessageInChat(ClientConnection.chatPrefix + Color.cl("c") + L.f("gui_chat_message_cantfollow", new Object[0]));
                                 }
                             }
                             else
                             {
-                                LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L._("gui_chat_message_cantfollow", new Object[0]), EnumAlertType.CHAT);
+                                LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L.f("gui_chat_message_cantfollow", new Object[0]), EnumAlertType.CHAT);
                             }
                         }
                         else
                         {
-                            LabyMod.getInstance().connectToServer(LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp());
+                            LabyMod.getInstance().connectToServer(LabyMod.getInstance().selectedPlayer.getServerInfo().getServerIp() + ":" + LabyMod.getInstance().selectedPlayer.getServerInfo().getServerPort());
                         }
                     }
                     else if (ConfigManager.settings.chatAlertType)
                     {
                         if (ConfigManager.settings.alertsChat)
                         {
-                            LabyMod.getInstance().displayMessageInChat(Color.cl("c") + L._("gui_chat_message_notplaying", new Object[0]));
+                            LabyMod.getInstance().displayMessageInChat(Color.cl("c") + L.f("gui_chat_message_notplaying", new Object[0]));
                         }
                     }
                     else
                     {
-                        LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L._("gui_chat_message_notplaying", new Object[0]), EnumAlertType.CHAT);
+                        LabyMod.getInstance().achievementGui.displayBroadcast(BroadcastType.ERROR, L.f("gui_chat_message_notplaying", new Object[0]), EnumAlertType.CHAT);
                     }
                 }
 
@@ -1472,7 +1240,7 @@ public class GuiOnlineChat extends GuiMenuScreen
 
             if (mouseY > this.showPlayerSettingsY + 29 && mouseY < this.showPlayerSettingsY + 41 && LabyMod.getInstance().selectedPlayer != null)
             {
-                LabyMod.getInstance().getClient().setNotifecationStatus(LabyMod.getInstance().selectedPlayer, !LabyMod.getInstance().selectedPlayer.isNotify());
+                ;
             }
 
             if (mouseY > this.showPlayerSettingsY + 41 && mouseY < this.showPlayerSettingsY + this.PSSizeY && this.showPlayerSettingsPlayer != null)
@@ -1620,7 +1388,7 @@ public class GuiOnlineChat extends GuiMenuScreen
     private void drawFriendFinder()
     {
         this.drawBackground(0);
-        this.draw.drawCenteredString(L._("gui_chat_addfriend", new Object[0]), this.width / 2, this.height / 2 - 25);
+        this.draw.drawCenteredString(L.f("gui_chat_addfriend", new Object[0]), this.width / 2, this.height / 2 - 25);
         this.searchFriendsArea.xPosition = this.width / 2 - 90;
         this.searchFriendsArea.yPosition = this.height / 2 - 10;
         this.searchFriendsArea.drawTextBox();
@@ -1841,6 +1609,7 @@ public class GuiOnlineChat extends GuiMenuScreen
                         }
 
                         ChatHandler.resetTyping();
+                        this.chatArea.setFocused(true);
                         break;
                     }
 
@@ -2048,9 +1817,9 @@ public class GuiOnlineChat extends GuiMenuScreen
                     p.messages = 0;
                 }
 
-                if (!p.isOnline())
+                if (!p.isOnline() && !p.isRequest())
                 {
-                    GL11.glColor3d(0.30000001192092896D, 0.30000001192092896D, 0.30000001192092896D);
+                    GL11.glColor3d(0.10000000149011612D, 0.10000000149011612D, 0.10000000149011612D);
                 }
 
                 LabyMod.getInstance().textureManager.drawPlayerHead(p.getName(), 8.0D, (double)(30 + this.friendListY + this.scrollFriendList), 1.0D);
@@ -2071,17 +1840,17 @@ public class GuiOnlineChat extends GuiMenuScreen
                         i = 99;
                     }
 
-                    s = Color.cl("c") + " (" + i + ")";
+                    s = Color.cl("e") + " (" + i + ")";
                 }
 
                 GL11.glPushMatrix();
                 GL11.glScaled(d0, d0, d0);
-                this.draw.drawString(Color.cl("b") + p.getName() + s, (double)((int)(43.0D / d0)), (double)((int)((double)(28 + this.friendListY + this.scrollFriendList) / d0)));
+                this.draw.drawString(Color.cl(p.isOnline() ? "a" : "c") + p.getName() + s, (double)((int)(43.0D / d0)), (double)((int)((double)(28 + this.friendListY + this.scrollFriendList) / d0)));
                 GL11.glPopMatrix();
 
                 if (p.isRequest())
                 {
-                    this.draw.drawString(Color.cl("e") + Color.cl("l") + L._("gui_chat_status_request", new Object[0]), 43.0D, (double)(38 + this.friendListY + this.scrollFriendList));
+                    this.draw.drawString(Color.cl("e") + Color.cl("l") + L.f("gui_chat_status_request", new Object[0]), 43.0D, (double)(38 + this.friendListY + this.scrollFriendList));
                 }
                 else
                 {
@@ -2156,8 +1925,8 @@ public class GuiOnlineChat extends GuiMenuScreen
         {
             if (LabyMod.getInstance().getClient().getClientConnection().getState() == EnumConnectionState.PLAY)
             {
-                this.draw.drawCenteredString(Color.cl("c") + L._("gui_chat_nofriends_title", new Object[0]), 70, this.listPositionY + 75);
-                this.draw.drawCenteredString(Color.cl("c") + L._("gui_chat_nofriends_all", new Object[0]), 70, this.listPositionY + 85);
+                this.draw.drawCenteredString(Color.cl("c") + L.f("gui_chat_nofriends_title", new Object[0]), 70, this.listPositionY + 75);
+                this.draw.drawCenteredString(Color.cl("c") + L.f("gui_chat_nofriends_all", new Object[0]), 70, this.listPositionY + 85);
             }
         }
         else
@@ -2177,12 +1946,12 @@ public class GuiOnlineChat extends GuiMenuScreen
             {
                 if (this.searchArea.getText().replace(" ", "").isEmpty())
                 {
-                    this.draw.drawCenteredString(Color.cl("c") + L._("gui_chat_nofriends_title", new Object[0]), 70, this.listPositionY + 85);
+                    this.draw.drawCenteredString(Color.cl("c") + L.f("gui_chat_nofriends_title", new Object[0]), 70, this.listPositionY + 85);
                     this.draw.drawCenteredString(Color.cl("c") + this.trlS(ConfigManager.settings.showSettingsFriend), 70, this.listPositionY + 95);
                 }
                 else
                 {
-                    this.draw.drawCenteredString(Color.cl("c") + L._("gui_chat_nofriends_error", new Object[0]), 70, this.listPositionY + 75);
+                    this.draw.drawCenteredString(Color.cl("c") + L.f("gui_chat_nofriends_error", new Object[0]), 70, this.listPositionY + 75);
                     this.draw.drawCenteredString(Color.cl("c") + this.searchArea.getText(), 70, this.listPositionY + 85);
                 }
             }
@@ -2191,7 +1960,7 @@ public class GuiOnlineChat extends GuiMenuScreen
 
     private String trlS(int i)
     {
-        return i != 0 && i != 3 ? (i == 1 ? L._("gui_chat_nofriends_online", new Object[0]) : (i == 2 ? L._("gui_chat_nofriends_request", new Object[0]) : null)) : L._("gui_chat_nofriends_all", new Object[0]);
+        return i != 0 && i != 3 ? (i == 1 ? L.f("gui_chat_nofriends_online", new Object[0]) : (i == 2 ? L.f("gui_chat_nofriends_request", new Object[0]) : null)) : L.f("gui_chat_nofriends_all", new Object[0]);
     }
 
     private void drawMyProfile()
@@ -2229,7 +1998,7 @@ public class GuiOnlineChat extends GuiMenuScreen
 
         if (LabyMod.getInstance().lastKickReason != null && !LabyMod.getInstance().lastKickReason.isEmpty() && LabyMod.getInstance().getClient().getClientConnection().getState() != EnumConnectionState.PLAY)
         {
-            this.draw.drawString("\u00a74" + L._("error_error", new Object[0]) + ": \u00a7c" + LabyMod.getInstance().lastKickReason, 145.0D, (double)(LabyMod.getInstance().draw.getHeight() - 18));
+            this.draw.drawString(Color.c + "4" + L.f("error_error", new Object[0]) + ": " + Color.c + "c" + LabyMod.getInstance().lastKickReason, 145.0D, (double)(LabyMod.getInstance().draw.getHeight() - 18));
         }
     }
 
@@ -2337,37 +2106,6 @@ public class GuiOnlineChat extends GuiMenuScreen
             for (MessageChatComponent messagechatcomponent : list)
             {
                 messagechatcomponent.mouseRelease(mouseX, mouseY, state);
-            }
-        }
-    }
-
-    class level extends Thread
-    {
-        public void run()
-        {
-            if (GuiOnlineChat.this.micLine != null)
-            {
-                byte[] abyte = new byte[GuiOnlineChat.this.micLine.getFormat().getFrameSize()];
-                GuiOnlineChat.this.micLine.read(abyte, 0, abyte.length);
-                GuiOnlineChat.this.micLevel = GuiOnlineChat.this.calculateRMSLevel(abyte);
-            }
-        }
-    }
-
-    class rec extends Thread
-    {
-        public void run()
-        {
-            Type type = Type.WAVE;
-            AudioInputStream audioinputstream = new AudioInputStream(GuiOnlineChat.this.micLine);
-
-            try
-            {
-                AudioSystem.write(audioinputstream, type, GuiOnlineChat.this.currentAudioFile);
-            }
-            catch (Exception var4)
-            {
-                ;
             }
         }
     }

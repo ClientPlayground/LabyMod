@@ -1,5 +1,6 @@
 package de.labystudio.gui;
 
+import de.labystudio.gommehd.GommeHDSign;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Color;
 import de.labystudio.utils.DrawUtils;
@@ -19,8 +20,8 @@ public class GuiGommeHDSearch extends GuiScreen
     private GuiTextField field_146302_g2;
     private GuiTextField field_146302_g3;
     GuiButton gommeSeachAllowedButton;
-    GuiButton gommeAutoJoinButton;
     GuiButton gommeSoundButton;
+    GuiButton gommeNightMode;
     GuiButton buttonClear;
 
     /**
@@ -37,21 +38,21 @@ public class GuiGommeHDSearch extends GuiScreen
         this.buttonList.add(this.buttonClear);
         this.field_146302_g = new GuiTextField(2, this.draw.fontRenderer, this.width / 2 - 99, this.height / 2 - 53, 178, 20);
         this.field_146302_g.setFocused(true);
-        this.field_146302_g.setText(LabyMod.getInstance().gommeHDSearch);
+        this.field_146302_g.setText(GommeHDSign.search);
         this.field_146302_g.setMaxStringLength(400);
         this.buttonClear.enabled = this.field_146302_g.getText().length() > 0 && this.field_146302_g.getText().split(":").length > 0;
         this.field_146302_g2 = new GuiTextField(2, this.draw.fontRenderer, this.width / 2 + 10, this.height / 2 - 12, 90, 20);
-        this.field_146302_g2.setText(LabyMod.getInstance().gommeHDSeachPartySize + "");
+        this.field_146302_g2.setText(GommeHDSign.partySize + "");
         this.field_146302_g2.setMaxStringLength(2);
         this.field_146302_g3 = new GuiTextField(8, this.draw.fontRenderer, this.width / 2 + 10, this.height / 2 + 29, 90, 20);
-        this.field_146302_g3.setText(LabyMod.getInstance().gommeHDSearchBlacklist + "");
+        this.field_146302_g3.setText(GommeHDSign.blacklist + "");
         this.field_146302_g3.setMaxStringLength(400);
-        this.gommeSeachAllowedButton = new GuiButton(1, this.width / 2 - 100, this.height / 2 - 12, 90, 20, this.getSymbol(LabyMod.getInstance().gommeHDSeachAllowed));
+        this.gommeSeachAllowedButton = new GuiButton(1, this.width / 2 - 100, this.height / 2 - 12, 90, 20, this.getSymbol(GommeHDSign.allowed));
         this.buttonList.add(this.gommeSeachAllowedButton);
-        this.gommeAutoJoinButton = new GuiButton(2, this.width / 2 - 100, this.height / 2 + 28, 90, 20, this.getSymbol(LabyMod.getInstance().gommeHDAutoJoin));
-        this.buttonList.add(this.gommeAutoJoinButton);
-        this.gommeSoundButton = new GuiButton(3, this.width / 2 - 100, this.height / 2 + 65, 90, 20, this.getSymbol(LabyMod.getInstance().gommeHDSound));
+        this.gommeSoundButton = new GuiButton(3, this.width / 2 - 100, this.height / 2 + 27, 90, 20, this.getSymbol(GommeHDSign.sound));
         this.buttonList.add(this.gommeSoundButton);
+        this.gommeNightMode = new GuiButton(4, this.width / 2 - 100, this.height / 2 + 65, 90, 20, this.getSymbol(GommeHDSign.nightMode));
+        this.buttonList.add(this.gommeNightMode);
         GuiButton guibutton = new GuiButton(-1, this.width - 53, this.height - 23, 50, 20, "Search");
         guibutton.enabled = false;
         this.buttonList.add(guibutton);
@@ -75,28 +76,31 @@ public class GuiGommeHDSearch extends GuiScreen
                 break;
 
             case 1:
-                LabyMod.getInstance().gommeHDSeachAllowed = !LabyMod.getInstance().gommeHDSeachAllowed;
+                GommeHDSign.allowed = !GommeHDSign.allowed;
 
-                if (!LabyMod.getInstance().gommeHDSeachAllowed)
+                if (!GommeHDSign.allowed)
                 {
-                    LabyMod.getInstance().gommeHDAutoJoin = false;
-                    LabyMod.getInstance().gommeHDSound = false;
+                    GommeHDSign.autoJoin = false;
+                    GommeHDSign.sound = false;
                 }
 
-                button.displayString = this.getSymbol(LabyMod.getInstance().gommeHDSeachAllowed);
-                this.gommeAutoJoinButton.displayString = this.getSymbol(LabyMod.getInstance().gommeHDAutoJoin);
-                button.displayString = this.getSymbol(LabyMod.getInstance().gommeHDSeachAllowed);
-                this.gommeSoundButton.displayString = this.getSymbol(LabyMod.getInstance().gommeHDSound);
+                button.displayString = this.getSymbol(GommeHDSign.allowed);
+                button.displayString = this.getSymbol(GommeHDSign.allowed);
+                this.gommeSoundButton.displayString = this.getSymbol(GommeHDSign.sound);
                 break;
 
             case 2:
-                LabyMod.getInstance().gommeHDAutoJoin = !LabyMod.getInstance().gommeHDAutoJoin;
-                button.displayString = this.getSymbol(LabyMod.getInstance().gommeHDAutoJoin);
+                button.displayString = this.getSymbol(GommeHDSign.autoJoin);
                 break;
 
             case 3:
-                LabyMod.getInstance().gommeHDSound = !LabyMod.getInstance().gommeHDSound;
-                button.displayString = this.getSymbol(LabyMod.getInstance().gommeHDSound);
+                GommeHDSign.sound = !GommeHDSign.sound;
+                button.displayString = this.getSymbol(GommeHDSign.sound);
+                break;
+
+            case 4:
+                GommeHDSign.nightMode = !GommeHDSign.nightMode;
+                button.displayString = this.getSymbol(GommeHDSign.nightMode);
         }
 
         this.save();
@@ -118,14 +122,14 @@ public class GuiGommeHDSearch extends GuiScreen
 
     public void save()
     {
-        LabyMod.getInstance().gommeHDSearch = this.field_146302_g.getText();
-        LabyMod.getInstance().gommeHDSearchBlacklist = this.field_146302_g3.getText();
+        GommeHDSign.search = this.field_146302_g.getText();
+        GommeHDSign.blacklist = this.field_146302_g3.getText();
 
         if (!this.field_146302_g2.getText().isEmpty())
         {
             if (isNumeric(this.field_146302_g2.getText()))
             {
-                LabyMod.getInstance().gommeHDSeachPartySize = Integer.parseInt(this.field_146302_g2.getText());
+                GommeHDSign.partySize = Integer.parseInt(this.field_146302_g2.getText());
             }
             else
             {
@@ -134,7 +138,7 @@ public class GuiGommeHDSearch extends GuiScreen
         }
         else
         {
-            LabyMod.getInstance().gommeHDSeachPartySize = 0;
+            GommeHDSign.partySize = 0;
         }
     }
 
@@ -198,29 +202,28 @@ public class GuiGommeHDSearch extends GuiScreen
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         this.drawDefaultBackground();
-        this.gommeAutoJoinButton.enabled = LabyMod.getInstance().gommeHDSeachAllowed;
-        this.gommeSoundButton.enabled = LabyMod.getInstance().gommeHDSeachAllowed;
+        this.gommeSoundButton.enabled = GommeHDSign.allowed;
         this.draw.drawCenteredString("" + Color.c + "fGommeHD Map Search", this.width / 2, this.height / 2 - 70);
         this.draw.drawString("" + Color.c + "fColored Signs:", (double)(this.width / 2 - 99), (double)(this.height / 2 - 24));
         this.draw.drawString("" + Color.c + "fParty size:", (double)(this.width / 2 + 10), (double)(this.height / 2 - 24));
-        this.draw.drawString("" + Color.c + "fAutojoin:", (double)(this.width / 2 - 99), (double)(this.height / 2 + 17));
         this.draw.drawString("" + Color.c + "fBlacklist:", (double)(this.width / 2 + 10), (double)(this.height / 2 + 17));
-        this.draw.drawString("" + Color.c + "fSounds:", (double)(this.width / 2 - 99), (double)(this.height / 2 + 55));
+        this.draw.drawString("" + Color.c + "fSounds:", (double)(this.width / 2 - 99), (double)(this.height / 2 + 17));
+        this.draw.drawString("" + Color.c + "fNightmode:", (double)(this.width / 2 - 99), (double)(this.height / 2 + 55));
         this.draw.drawBox(this.width / 2 + 80, this.height / 2 - 54, this.width / 2 - 99 + 201, this.height / 2 - 53 + 21);
         this.field_146302_g.drawTextBox();
         this.field_146302_g2.drawTextBox();
         this.field_146302_g3.drawTextBox();
 
-        if (!LabyMod.getInstance().gommeHDSearch.isEmpty() && LabyMod.getInstance().gommeHDSearch.toLowerCase().contains(LabyMod.getInstance().gommeHDSearchBlacklist.toLowerCase()))
+        if (!GommeHDSign.search.isEmpty() && GommeHDSign.search.toLowerCase().contains(GommeHDSign.blacklist.toLowerCase()))
         {
-            if (LabyMod.getInstance().gommeHDSearchBlacklist.length() < 13)
+            if (GommeHDSign.blacklist.length() < 13)
             {
-                this.draw.drawString(Color.c + "c" + LabyMod.getInstance().gommeHDSearchBlacklist, (double)(this.width / 2 + 14), (double)(this.height / 2 + 35));
+                this.draw.drawString(Color.c + "c" + GommeHDSign.blacklist, (double)(this.width / 2 + 14), (double)(this.height / 2 + 35));
             }
 
-            if (LabyMod.getInstance().gommeHDSearch.length() < 22)
+            if (GommeHDSign.search.length() < 22)
             {
-                this.draw.drawString(LabyMod.getInstance().gommeHDSearch.replace(LabyMod.getInstance().gommeHDSearchBlacklist, Color.c + "c" + LabyMod.getInstance().gommeHDSearchBlacklist + Color.c + "f"), (double)(this.width / 2 - 95), (double)(this.height / 2 - 47));
+                this.draw.drawString(GommeHDSign.search.replace(GommeHDSign.blacklist, Color.c + "c" + GommeHDSign.blacklist + Color.c + "f"), (double)(this.width / 2 - 95), (double)(this.height / 2 - 47));
             }
         }
 

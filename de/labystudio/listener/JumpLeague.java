@@ -97,21 +97,26 @@ public class JumpLeague
                 playminityServer_jl_module = -1;
             }
 
-            if (clean.startsWith(s + " +5 Points | +3 Minitys"))
+            if (clean.startsWith(s + " +5 Points | +3 Minitys") || clean.startsWith(s + " +5 Punkte | +3 Minitys"))
             {
                 ++playminityServer_jl_kills;
             }
 
-            if ((clean.contains("> Willkommen auf mc.PlayMinity.com") || clean.contains("> Welcome to mc.PlayMinity.com")) && !clean.contains(":"))
+            if ((clean.contains("> Willkommen auf mc.PlayMinity.com") || clean.contains("> Welcome to mc.PlayMinity.com") || clean.startsWith("[!] Verbinde zum Hub-Server") || clean.contains("Du bist nun ein Zuschauer") || clean.startsWith("[!] Connecting to hub server")) && !clean.contains(":"))
             {
                 LabyMod.getInstance().resetMod();
+            }
+
+            if (clean.startsWith(" [PM] Dein aktueller Nickname ist: ") || clean.startsWith(" [PM] Your current nickname is: "))
+            {
+                LabyMod.getInstance().nickname = clean.replace(" [PM] Dein aktueller Nickname ist: ", "").replace(" [PM] Your current nickname is: ", "");
             }
         }
     }
 
     public static void drawPlayMinityGui()
     {
-        if (ConfigManager.settings.gamePlayMinity.booleanValue())
+        if (ConfigManager.settings.gamePlayMinity)
         {
             if (playminityServer_jl)
             {

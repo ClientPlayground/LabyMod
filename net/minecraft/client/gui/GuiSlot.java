@@ -430,7 +430,7 @@ public abstract class GuiSlot
 
                 double d1 = (double)i2;
 
-                if (ConfigManager.settings.smoothScroll.booleanValue())
+                if (ConfigManager.settings.smoothScroll)
                 {
                     d1 = d0;
                 }

@@ -118,11 +118,6 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
      */
     protected void keyTyped(char typedChar, int keyCode) throws IOException
     {
-        if (ModAPI.enabled())
-        {
-            ModAPI.callEvent(new KeyTypedScreenEvent(this, typedChar, keyCode));
-        }
-
         if (keyCode == 1)
         {
             this.mc.displayGuiScreen((GuiScreen)null);
@@ -198,7 +193,7 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
      * Draws the text when mouse is over creative inventory tab. Params: current creative tab to be checked, current
      * mouse x position, current mouse y position.
      */
-    protected void drawCreativeTabHoveringText(String tabName, int mouseX, int mouseY)
+    public void drawCreativeTabHoveringText(String tabName, int mouseX, int mouseY)
     {
         this.drawHoveringText(Arrays.<String>asList(new String[] {tabName}), mouseX, mouseY);
     }
@@ -206,7 +201,7 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
     /**
      * Draws a List of strings as a tooltip. Every entry is drawn on a seperate line.
      */
-    protected void drawHoveringText(List<String> textLines, int x, int y)
+    public void drawHoveringText(List<String> textLines, int x, int y)
     {
         if (!textLines.isEmpty())
         {
@@ -501,16 +496,19 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
             this.mc.ingameGUI.getChatGUI().addToSentMessages(msg);
         }
 
-        if (ModAPI.enabled())
+        if (LabyMod.getInstance().onSendChatMessage(msg))
         {
-            if (!((SendChatMessageEvent)ModAPI.callEvent(new SendChatMessageEvent(msg))).isCancelled())
+            if (ModAPI.enabled())
             {
-                this.mc.thePlayer.sendChatMessage(msg);
+                if (!((SendChatMessageEvent)ModAPI.callEvent(new SendChatMessageEvent(msg))).isCancelled())
+                {
+                    this.mc.thePlayer.sendChatMessage(msg);
+                }
             }
-        }
-        else
-        {
-            this.mc.thePlayer.sendChatMessage(msg);
+            else
+            {
+                Minecraft.getMinecraft().thePlayer.sendChatMessage(msg);
+            }
         }
     }
 
@@ -521,7 +519,7 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
     {
         if (ModAPI.enabled())
         {
-            ModAPI.callEvent(new MouseClickedScreenEvent(this, mouseX, mouseY));
+            ModAPI.callEvent(new MouseClickedScreenEvent(this, mouseX, mouseY, mouseButton));
         }
 
         if (mouseButton == 0)
@@ -663,6 +661,11 @@ public abstract class GuiScreen extends Gui implements GuiYesNoCallback
         if (Keyboard.getEventKeyState())
         {
             this.keyTyped(Keyboard.getEventCharacter(), Keyboard.getEventKey());
+
+            if (ModAPI.enabled())
+            {
+                ModAPI.callEvent(new KeyTypedScreenEvent(this, Keyboard.getEventCharacter(), Keyboard.getEventKey()));
+            }
         }
 
         this.mc.dispatchKeypresses();

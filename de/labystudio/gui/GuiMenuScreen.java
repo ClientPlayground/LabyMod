@@ -120,29 +120,29 @@ public class GuiMenuScreen extends GuiScreen
         super.initGui();
         this.next = 2;
         LabyMod.getInstance();
-        String s1 = LabyMod.getInstance().isInGame() ? L._("tab_menu", new Object[0]) : L._("tab_multiplayer", new Object[0]);
+        String s1 = LabyMod.getInstance().isInGame() ? L.f("tab_menu", new Object[0]) : L.f("tab_multiplayer", new Object[0]);
         LabyMod.getInstance();
         this.addButton(100, s1, LabyMod.getInstance().isInGame() ? "Menu" : "Multiplayer");
-        this.addButton(102, L._("tab_chat", new Object[0]), "Chat");
+        this.addButton(102, L.f("tab_chat", new Object[0]), "Chat");
 
-        if (ConfigManager.settings.tags.booleanValue())
+        if (ConfigManager.settings.tags)
         {
-            this.addButton(103, L._("tab_tags", new Object[0]), "Tags");
+            this.addButton(103, L.f("tab_tags", new Object[0]), "Tags");
         }
 
-        if (ConfigManager.settings.teamSpeak.booleanValue())
+        if (ConfigManager.settings.teamSpeak)
         {
-            this.addButton(104, L._("tab_teamspeak", new Object[0]), "TeamSpeak");
+            this.addButton(104, L.f("tab_teamspeak", new Object[0]), "TeamSpeak");
         }
 
         if (ConfigManager.settings.miniGames)
         {
-            this.addButton(105, L._("tab_games", new Object[0]), "Games");
+            this.addButton(105, L.f("tab_games", new Object[0]), "Games");
         }
 
         if (ConfigManager.settings.stopWatch)
         {
-            this.addButton(106, L._("tab_stopwatch", new Object[0]), "Stopwatch");
+            this.addButton(106, L.f("tab_stopwatch", new Object[0]), "Stopwatch");
         }
     }
 
@@ -162,7 +162,7 @@ public class GuiMenuScreen extends GuiScreen
         LabyMod.getInstance();
         this.next = i + LabyMod.getInstance().draw.getStringWidth(title) + 11;
 
-        if (title.toLowerCase().contains(L._("tab_chat", new Object[0])))
+        if (title.toLowerCase().contains(L.f("tab_chat", new Object[0])))
         {
             this.chat = this.next;
         }

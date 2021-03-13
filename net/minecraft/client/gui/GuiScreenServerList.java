@@ -2,7 +2,6 @@ package net.minecraft.client.gui;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import de.labystudio.utils.Color;
 import de.zockermaus.serverpinger.ServerPinger;
 import java.io.IOException;
@@ -155,8 +154,6 @@ public class GuiScreenServerList extends GuiScreen
 
         if (ConfigManager.settings.directConnectInfo)
         {
-            Timings.start("Serverlist pinger");
-
             if (this.pinger != null && this.pinger.getCurrentData() != null)
             {
                 int i = this.pinger.getCurrentData().players;
@@ -208,8 +205,6 @@ public class GuiScreenServerList extends GuiScreen
             {
                 LabyMod.getInstance().draw.drawString(Color.cl("c") + "Pinging..", (double)(this.width / 2 - 100), 140.0D);
             }
-
-            Timings.stop("Serverlist pinger");
         }
 
         super.drawScreen(mouseX, mouseY, partialTicks);

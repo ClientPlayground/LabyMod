@@ -10,19 +10,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Formatter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import javax.net.ssl.HttpsURLConnection;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import org.apache.commons.io.IOUtils;
 
 public class Utils
@@ -109,19 +116,50 @@ public class Utils
         }
     }
 
-    public static void openWebpage(URI uri)
+    public static void openWebpage(final URI uri, boolean request)
     {
-        Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-
-        if (desktop != null && desktop.isSupported(Action.BROWSE))
+        if (request)
         {
-            try
+            final GuiScreen guiscreen = Minecraft.getMinecraft().currentScreen;
+            Minecraft.getMinecraft().displayGuiScreen(new GuiYesNo(new GuiYesNoCallback()
             {
-                desktop.browse(uri);
-            }
-            catch (Exception exception)
+                public void confirmClicked(boolean result, int id)
+                {
+                    if (result)
+                    {
+                        Desktop desktop1 = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+
+                        if (desktop1 != null && desktop1.isSupported(Action.BROWSE))
+                        {
+                            try
+                            {
+                                desktop1.browse(uri);
+                            }
+                            catch (Exception exception1)
+                            {
+                                exception1.printStackTrace();
+                            }
+                        }
+                    }
+
+                    Minecraft.getMinecraft().displayGuiScreen(guiscreen);
+                }
+            }, "Do you want to open this link in your default browser?", Color.cl("b") + uri.toString(), 31102009));
+        }
+        else
+        {
+            Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+
+            if (desktop != null && desktop.isSupported(Action.BROWSE))
             {
-                exception.printStackTrace();
+                try
+                {
+                    desktop.browse(uri);
+                }
+                catch (Exception exception)
+                {
+                    exception.printStackTrace();
+                }
             }
         }
     }
@@ -226,24 +264,33 @@ public class Utils
     public static String jsonPost(String urlStr, String json) throws Exception
     {
         URL url = new URL(urlStr);
-        HttpsURLConnection httpsurlconnection = (HttpsURLConnection)url.openConnection();
-        httpsurlconnection.setDoOutput(true);
-        httpsurlconnection.setDoInput(true);
-        httpsurlconnection.setRequestProperty("Content-Type", "application/json");
-        httpsurlconnection.setRequestMethod("POST");
-        OutputStreamWriter outputstreamwriter = new OutputStreamWriter(httpsurlconnection.getOutputStream());
+        HttpURLConnection httpurlconnection = (HttpURLConnection)url.openConnection();
+        httpurlconnection.setDoOutput(true);
+        httpurlconnection.setDoInput(true);
+        httpurlconnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+        httpurlconnection.setRequestMethod("POST");
+        OutputStreamWriter outputstreamwriter = new OutputStreamWriter(httpurlconnection.getOutputStream());
         outputstreamwriter.write(json);
         outputstreamwriter.close();
-        BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpsurlconnection.getInputStream()));
-        StringBuffer stringbuffer = new StringBuffer();
+        int i = httpurlconnection.getResponseCode();
 
-        for (String s = bufferedreader.readLine(); s != null; s = bufferedreader.readLine())
+        if (i / 100 != 2)
         {
-            stringbuffer.append(s);
+            return "Response: " + i;
         }
+        else
+        {
+            BufferedReader bufferedreader = new BufferedReader(new InputStreamReader(httpurlconnection.getInputStream()));
+            StringBuffer stringbuffer = new StringBuffer();
 
-        bufferedreader.close();
-        return stringbuffer.toString();
+            for (String s = bufferedreader.readLine(); s != null; s = bufferedreader.readLine())
+            {
+                stringbuffer.append(s);
+            }
+
+            bufferedreader.close();
+            return stringbuffer.toString();
+        }
     }
 
     public static String normalizeString(String input)
@@ -275,6 +322,43 @@ public class Utils
 
             return arraylist;
         }
+    }
+
+    public static String sha1(String string)
+    {
+        String s = "";
+
+        try
+        {
+            MessageDigest messagedigest = MessageDigest.getInstance("SHA-1");
+            messagedigest.reset();
+            messagedigest.update(string.getBytes("UTF-8"));
+            s = byteToHex(messagedigest.digest());
+        }
+        catch (NoSuchAlgorithmException nosuchalgorithmexception)
+        {
+            nosuchalgorithmexception.printStackTrace();
+        }
+        catch (UnsupportedEncodingException unsupportedencodingexception)
+        {
+            unsupportedencodingexception.printStackTrace();
+        }
+
+        return s;
+    }
+
+    private static String byteToHex(byte[] hash)
+    {
+        Formatter formatter = new Formatter();
+
+        for (byte b0 : hash)
+        {
+            formatter.format("%02x", new Object[] {Byte.valueOf(b0)});
+        }
+
+        String s = formatter.toString();
+        formatter.close();
+        return s;
     }
 
     public static class ConvertJsonToObject

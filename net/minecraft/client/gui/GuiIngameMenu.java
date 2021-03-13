@@ -91,7 +91,7 @@ public class GuiIngameMenu extends GuiMenuScreen
                 if (ConfigManager.settings.confirmDisconnect && !Minecraft.getMinecraft().isSingleplayer() && this.confirmDisconnect < 1)
                 {
                     ++this.confirmDisconnect;
-                    this.returnToMenu.displayString = Color.cl("c") + "Press again to confirm diconnect";
+                    this.returnToMenu.displayString = Color.cl("c") + "Press again to confirm disconnect";
                     return;
                 }
 
@@ -145,6 +145,7 @@ public class GuiIngameMenu extends GuiMenuScreen
             case 9:
                 ConfigManager.settings.hideMod = !ConfigManager.settings.hideMod;
                 this.initGui();
+                ConfigManager.save();
         }
 
         super.actionPermformed(button);

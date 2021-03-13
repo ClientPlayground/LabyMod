@@ -39,6 +39,7 @@ public class TileEntitySign extends TileEntity
     boolean search = false;
     boolean size = false;
     boolean full = false;
+    boolean empty = false;
 
     public void writeToNBT(NBTTagCompound compound)
     {
@@ -270,6 +271,16 @@ public class TileEntitySign extends TileEntity
     public void setSize(ArrayList<String> p_setSize_1_)
     {
         this.size = GommeHDSign.size(p_setSize_1_);
+    }
+
+    public void setEmpty(ArrayList<String> p_setEmpty_1_)
+    {
+        this.empty = GommeHDSign.isEmpty(p_setEmpty_1_);
+    }
+
+    public boolean isEmpty()
+    {
+        return this.empty;
     }
 
     public boolean getSize()

@@ -3,7 +3,8 @@ package net.minecraft.client.renderer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.GameSettings;
 import org.lwjgl.opengl.ARBFramebufferObject;
 import org.lwjgl.opengl.ARBMultitexture;
 import org.lwjgl.opengl.ARBShaderObjects;
@@ -19,9 +20,8 @@ import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.opengl.GLContext;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.settings.GameSettings;
+import oshi.SystemInfo;
+import oshi.hardware.Processor;
 
 public class OpenGlHelper
 {
@@ -294,8 +294,8 @@ public class OpenGlHelper
 
         try
         {
-           
-            
+            Processor[] aprocessor = (new SystemInfo()).getHardware().getProcessors();
+            field_183030_aa = String.format("%dx %s", new Object[] {Integer.valueOf(aprocessor.length), aprocessor[0]}).replaceAll("\\s+", " ");
         }
         catch (Throwable var3)
         {

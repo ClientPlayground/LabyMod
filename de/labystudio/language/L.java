@@ -91,7 +91,7 @@ public class L
         }
     }
 
-    public static String _(String key, Object... args)
+    public static String f(String key, Object... args)
     {
         return translate(key, true, args);
     }

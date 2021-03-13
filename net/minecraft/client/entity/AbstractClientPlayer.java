@@ -1,10 +1,11 @@
 package net.minecraft.client.entity;
 
 import com.mojang.authlib.GameProfile;
-import de.labystudio.capes.EnumCapePriority;
+import de.labystudio.capes.MineconRenderer;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.utils.Allowed;
+import de.labystudio.utils.Debug;
 import java.io.File;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetworkPlayerInfo;
@@ -27,7 +28,7 @@ public abstract class AbstractClientPlayer extends EntityPlayer
     private NetworkPlayerInfo playerInfo;
     private String nameClear = null;
     private ResourceLocation locationCape = null;
-    public EnumCapePriority capeType = null;
+    private MineconRenderer mineconParticleRender;
 
     public AbstractClientPlayer(World worldIn, GameProfile playerProfile)
     {
@@ -40,6 +41,11 @@ public abstract class AbstractClientPlayer extends EntityPlayer
         }
 
         LabyMod.getInstance().getCapeManager().downloadCape(this, false, false);
+
+        if (ConfigManager.settings.mineconParticle)
+        {
+            this.mineconParticleRender = new MineconRenderer();
+        }
     }
 
     /**
@@ -91,8 +97,20 @@ public abstract class AbstractClientPlayer extends EntityPlayer
     {
         NetworkPlayerInfo networkplayerinfo = this.getPlayerInfo();
         ResourceLocation resourcelocation = networkplayerinfo == null ? null : networkplayerinfo.getLocationCape();
-        boolean flag = LabyMod.getInstance().getCapeManager().getCapePriority() == EnumCapePriority.ORIGINAL && resourcelocation != null;
-        return !flag && ConfigManager.settings.capes.booleanValue() && this.locationCape != null ? this.locationCape : resourcelocation;
+
+        if (ConfigManager.settings.capes && this.locationCape != null)
+        {
+            return this.locationCape;
+        }
+        else
+        {
+            if (resourcelocation != null && this.mineconParticleRender != null && ConfigManager.settings.mineconParticle)
+            {
+                this.mineconParticleRender.render(this);
+            }
+
+            return resourcelocation;
+        }
     }
 
     public static ThreadDownloadImageData getDownloadImageSkin(ResourceLocation resourceLocationIn, String username)
@@ -180,10 +198,9 @@ public abstract class AbstractClientPlayer extends EntityPlayer
         return this.nameClear;
     }
 
-    public void setLocationOfCape(ResourceLocation p_setLocationOfCape_1_, EnumCapePriority p_setLocationOfCape_2_)
+    public void setLocationOfCape(ResourceLocation p_setLocationOfCape_1_, boolean p_setLocationOfCape_2_)
     {
         this.locationCape = p_setLocationOfCape_1_;
-        this.capeType = p_setLocationOfCape_2_;
-        System.out.println("[LabyMod] Loaded " + p_setLocationOfCape_2_.name() + " cape of " + this.getNameClear());
+        Debug.debug("[LabyMod] Loaded " + (p_setLocationOfCape_2_ ? "Optifine" : "LabyMod") + " cape of " + this.getNameClear());
     }
 }

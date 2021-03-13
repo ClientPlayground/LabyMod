@@ -1,6 +1,5 @@
 package de.zockermaus.ts3;
 
-import de.labystudio.utils.Debug;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -66,25 +65,18 @@ public class TeamSpeakController implements Runnable
             this.writer = new BufferedWriter(new OutputStreamWriter(new BufferedOutputStream(outputstream), Charset.forName("utf-8")));
             new TeamSpeakController.InputStreamReaderThread(inputstream);
             new TeamSpeakController.OutputStreamWriterThread(outputstream);
+            TeamspeakAuth.auth(outputstream);
             this.onEnable();
         }
         catch (UnknownHostException unknownhostexception)
         {
             TeamSpeak.print("TeamSpeak Connection Error: " + unknownhostexception.getMessage());
-
-            if (Debug.teamspeak())
-            {
-                unknownhostexception.printStackTrace();
-            }
+            unknownhostexception.printStackTrace();
         }
         catch (IOException ioexception)
         {
             TeamSpeak.print("Can\'t connect to TeamSpeak");
-
-            if (Debug.teamspeak())
-            {
-                ioexception.printStackTrace();
-            }
+            ioexception.printStackTrace();
         }
     }
 
@@ -121,19 +113,9 @@ public class TeamSpeakController implements Runnable
 
     protected void onMessageRecieved(String message)
     {
-        if (!message.isEmpty() && Debug.teamspeak())
+        if (!message.isEmpty())
         {
-            if (TeamSpeak.inputString.contains("-nonotify"))
-            {
-                if (!message.startsWith("notify"))
-                {
-                    TeamSpeak.print("TeamSpeak: " + message);
-                }
-            }
-            else
-            {
-                TeamSpeak.print("TeamSpeak: " + message);
-            }
+            ;
         }
 
         if (message.startsWith("notify"))

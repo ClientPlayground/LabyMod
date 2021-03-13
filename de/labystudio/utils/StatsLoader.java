@@ -1,7 +1,5 @@
 package de.labystudio.utils;
 
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,7 +9,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import net.minecraft.entity.player.EntityPlayer;
 import org.apache.commons.io.IOUtils;
 
 public class StatsLoader
@@ -20,8 +17,6 @@ public class StatsLoader
 
     public static void loadstats()
     {
-        Timings.start("Load Game stats config");
-
         if (stats.isEmpty())
         {
             stats.clear();
@@ -30,41 +25,46 @@ public class StatsLoader
 
             try
             {
-                s = IOUtils.toString((InputStream)(new FileInputStream(Source.file_stats)));
+                s = IOUtils.toString((InputStream)(new FileInputStream("LabyMod/minigames_stats.json")));
             }
-            catch (FileNotFoundException var2)
+            catch (FileNotFoundException var3)
             {
                 ;
             }
-            catch (IOException var3)
+            catch (IOException var4)
             {
                 ;
             }
 
-            EntityPlayer.syncPlayerScore();
-            stats = (HashMap)Utils.ConvertJsonToObject.getFromJSON(s, HashMap.class);
+            try
+            {
+                stats = (HashMap)Utils.ConvertJsonToObject.getFromJSON(s, HashMap.class);
+            }
+            catch (Exception exception)
+            {
+                (new File("LabyMod/minigames_stats.json")).delete();
+                exception.printStackTrace();
+            }
 
             if (stats == null)
             {
                 stats = new HashMap();
             }
-
-            Timings.stop("Load Game stats config");
         }
     }
 
     public static void create()
     {
-        if (!(new File(Source.file_stats)).exists())
+        if (!(new File("LabyMod/minigames_stats.json")).exists())
         {
             try
             {
-                if (!(new File(Source.file_stats)).getParentFile().exists())
+                if (!(new File("LabyMod/minigames_stats.json")).getParentFile().exists())
                 {
-                    (new File(Source.file_stats)).getParentFile().mkdirs();
+                    (new File("LabyMod/minigames_stats.json")).getParentFile().mkdirs();
                 }
 
-                (new File(Source.file_stats)).createNewFile();
+                (new File("LabyMod/minigames_stats.json")).createNewFile();
             }
             catch (IOException var1)
             {
@@ -80,7 +80,7 @@ public class StatsLoader
 
         try
         {
-            PrintWriter printwriter = new PrintWriter(new FileOutputStream(Source.file_stats));
+            PrintWriter printwriter = new PrintWriter(new FileOutputStream("LabyMod/minigames_stats.json"));
             printwriter.print(s);
             printwriter.flush();
             printwriter.close();
@@ -101,7 +101,7 @@ public class StatsLoader
         {
             for (int i1 = 0; i1 < list.size(); ++i1)
             {
-                String s = (String)list.get(i1);
+                String s = (String)list.get(i);
 
                 try
                 {

@@ -46,9 +46,9 @@ public class GuiTags extends GuiMenuScreen
     {
         Keyboard.enableRepeatEvents(true);
         this.buttonList.clear();
-        this.buttonList.add(this.btnAddFriend = new GuiButton(0, this.width / 2 - 154, this.height - 26, 100, 20, L._("gui_tags_addfriend", new Object[0])));
-        this.buttonList.add(this.btnEditFriend = new GuiButton(1, this.width / 2 - 50, this.height - 26, 100, 20, L._("gui_tags_editfriend", new Object[0])));
-        this.buttonList.add(this.btnDeleteFriend = new GuiButton(2, this.width / 2 + 4 + 50, this.height - 26, 100, 20, L._("gui_tags_deletefriend", new Object[0])));
+        this.buttonList.add(this.btnAddFriend = new GuiButton(0, this.width / 2 - 154, this.height - 26, 100, 20, L.f("gui_tags_addfriend", new Object[0])));
+        this.buttonList.add(this.btnEditFriend = new GuiButton(1, this.width / 2 - 50, this.height - 26, 100, 20, L.f("gui_tags_editfriend", new Object[0])));
+        this.buttonList.add(this.btnDeleteFriend = new GuiButton(2, this.width / 2 + 4 + 50, this.height - 26, 100, 20, L.f("gui_tags_deletefriend", new Object[0])));
         super.initGui();
         this.initEditor(this.selectedFriend);
 
@@ -88,11 +88,11 @@ public class GuiTags extends GuiMenuScreen
 
                 if (s1.isEmpty())
                 {
-                    this.draw.drawString(Color.cl("c") + L._("gui_tags_nonickname", new Object[0]) + Color.cl("r"), (double)(this.width / 2 - 110), (double)(25 + this.scrollbar.getScrollY() + i + 35));
+                    this.draw.drawString(Color.cl("c") + L.f("gui_tags_nonickname", new Object[0]) + Color.cl("r"), (double)(this.width / 2 - 110), (double)(25 + this.scrollbar.getScrollY() + i + 35));
                 }
                 else
                 {
-                    this.draw.drawString(Color.cl("e") + L._("gui_tags_nickname", new Object[0]) + ": " + Color.cl("r") + s1.replace("&", Color.c) + Color.cl("r"), (double)(this.width / 2 - 110), (double)(25 + this.scrollbar.getScrollY() + i + 35));
+                    this.draw.drawString(Color.cl("e") + L.f("gui_tags_nickname", new Object[0]) + ": " + Color.cl("r") + s1.replace("&", Color.c) + Color.cl("r"), (double)(this.width / 2 - 110), (double)(25 + this.scrollbar.getScrollY() + i + 35));
                 }
 
                 i += 35;
@@ -245,9 +245,9 @@ public class GuiTags extends GuiMenuScreen
                 this.editNick.setText((String)FriendsLoader.friends.get(name));
             }
 
-            GuiButton guibutton1 = new GuiButton(4, this.width / 2 - 100, this.height / 2 + 53, L._("button_cancel", new Object[0]));
+            GuiButton guibutton1 = new GuiButton(4, this.width / 2 - 100, this.height / 2 + 53, L.f("button_cancel", new Object[0]));
             this.buttonList.add(guibutton1);
-            this.done = new GuiButton(3, this.width / 2 - 100, this.height / 2 + 28, L._("button_done", new Object[0]));
+            this.done = new GuiButton(3, this.width / 2 - 100, this.height / 2 + 28, L.f("button_done", new Object[0]));
             this.buttonList.add(this.done);
             this.btnDeleteFriend.visible = false;
             this.btnEditFriend.visible = false;
@@ -257,8 +257,8 @@ public class GuiTags extends GuiMenuScreen
 
     private void drawEditor()
     {
-        this.draw.drawString(L._("gui_tags_playername", new Object[0]) + ":", (double)(this.width / 2 - 100), (double)(this.height / 2 - 63));
-        this.draw.drawString(L._("gui_tags_nickname", new Object[0]) + ":", (double)(this.width / 2 - 100), (double)(this.height / 2 - 13));
+        this.draw.drawString(L.f("gui_tags_playername", new Object[0]) + ":", (double)(this.width / 2 - 100), (double)(this.height / 2 - 63));
+        this.draw.drawString(L.f("gui_tags_nickname", new Object[0]) + ":", (double)(this.width / 2 - 100), (double)(this.height / 2 - 13));
 
         if (this.editName != null && this.editNick != null)
         {

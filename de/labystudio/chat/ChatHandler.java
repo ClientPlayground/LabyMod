@@ -1,28 +1,19 @@
 package de.labystudio.chat;
 
+import de.labystudio.gommehd.GommeHDSign;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Source;
-import de.labystudio.labymod.Timings;
 import de.labystudio.packets.PacketPlayServerStatus;
 import de.labystudio.packets.PacketPlayTyping;
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import org.apache.logging.log4j.LogManager;
-import org.h2.engine.Database;
 
 public class ChatHandler
 {
-    private Database database;
-    private Connection connection;
     private List<SingleChat> chats;
     private static ChatHandler instance;
     public static int playerStatus = 0;
@@ -41,24 +32,8 @@ public class ChatHandler
 
     public ChatHandler()
     {
-        Timings.start("ChatHandler");
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
-        {
-            public void run()
-            {
-                try
-                {
-                    ChatHandler.this.connection.close();
-                }
-                catch (SQLException sqlexception)
-                {
-                    sqlexception.printStackTrace();
-                }
-            }
-        }));
         instance = this;
         this.chats = new ArrayList();
-        Timings.stop("ChatHandler");
     }
 
     public SingleChat getChat(String player)
@@ -186,7 +161,7 @@ public class ChatHandler
             s = "_" + i;
         }
 
-        File file1 = new File(Source.file_Chatlog + "/" + LabyMod.getInstance().getPlayerName() + "/chatlog" + s);
+        File file1 = new File("LabyMod/Chatlog/" + LabyMod.getInstance().getPlayerName() + "/chatlog" + s);
 
         if (!file1.exists())
         {
@@ -194,93 +169,6 @@ public class ChatHandler
         }
 
         return file1;
-    }
-
-    public void shutdown()
-    {
-        if (this.connection != null)
-        {
-            try
-            {
-                this.connection.close();
-            }
-            catch (SQLException sqlexception)
-            {
-                sqlexception.printStackTrace();
-            }
-        }
-    }
-
-    public Connection getConnection()
-    {
-        try
-        {
-            if (this.connection == null || this.connection.isClosed())
-            {
-                this.initConnection();
-            }
-        }
-        catch (SQLException sqlexception)
-        {
-            sqlexception.printStackTrace();
-        }
-
-        return this.connection;
-    }
-
-    public void initConnection()
-    {
-        for (int i = 0; i <= 10; ++i)
-        {
-            try
-            {
-                Class.forName("org.h2.Driver").newInstance();
-                this.connection = DriverManager.getConnection("jdbc:h2:" + getLogFile(i).getAbsolutePath());
-                break;
-            }
-            catch (Exception exception)
-            {
-                exception.printStackTrace();
-            }
-        }
-    }
-
-    public void initDatabase()
-    {
-        Timings.start("Chat initDatabase");
-
-        try
-        {
-            this.initConnection();
-
-            if (this.connection == null)
-            {
-                File file1 = new File(Source.file_Chatlog);
-
-                if (file1.exists())
-                {
-                    file1.delete();
-                }
-
-                this.initConnection();
-            }
-
-            if (this.connection == null || this.connection.isClosed())
-            {
-                return;
-            }
-
-            this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS friends (id INT AUTO_INCREMENT PRIMARY KEY, friend_id VARCHAR(60), showAlerts BOOLEAN)").executeUpdate();
-            this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS single_chats (id INT AUTO_INCREMENT PRIMARY KEY, friend_name VARCHAR(16), friend_uuid VARCHAR(60))").executeUpdate();
-            this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS single_chat_messages (id INT AUTO_INCREMENT PRIMARY KEY, single_chats_id INT, sender VARCHAR(20), sender_message VARCHAR(200), sent_time LONG)").executeUpdate();
-            this.initChatlogs();
-        }
-        catch (SQLException sqlexception)
-        {
-            sqlexception.printStackTrace();
-        }
-
-        Timings.stop("Chat initDatabase");
     }
 
     public void updateChats(LabyModPlayer player)
@@ -296,26 +184,6 @@ public class ChatHandler
         }
     }
 
-    public void initChatlogs()
-    {
-        int i = 0;
-
-        try
-        {
-            for (ResultSet resultset = this.connection.prepareStatement("SELECT * FROM single_chats").executeQuery(); resultset.next(); ++i)
-            {
-                SingleChat singlechat = new SingleChat(resultset.getInt("id"), new LabyModPlayer(resultset.getString("friend_name"), UUID.fromString(resultset.getString("friend_uuid")), "* Offline *", LabyModPlayer.OnlineStatus.OFFLINE), this.loadChatlog(resultset.getInt("id")));
-                this.chats.add(singlechat);
-            }
-        }
-        catch (Exception exception)
-        {
-            exception.printStackTrace();
-        }
-
-        LogManager.getLogger().info("Loaded {} Chats!", new Object[] {Integer.valueOf(i)});
-    }
-
     public SingleChat createSingleChat(LabyModPlayer friend)
     {
         if (this.getOnlyChat(friend) != null)
@@ -324,62 +192,10 @@ public class ChatHandler
         }
         else
         {
-            try
-            {
-                if (this.connection == null)
-                {
-                    LogManager.getLogger().error("FileSQL Connection is NULL");
-                }
-
-                this.connection.prepareStatement("INSERT INTO single_chats (friend_name, friend_uuid) VALUES (\'" + friend.getName() + "\', \'" + friend.getId().toString() + "\')").executeUpdate();
-            }
-            catch (SQLException sqlexception)
-            {
-                sqlexception.printStackTrace();
-            }
-
-            int i = this.chats.size();
-
-            try
-            {
-                ResultSet resultset = this.connection.prepareStatement("SELECT id FROM single_chats WHERE friend_uuid=\'" + friend.getId().toString() + "\'").executeQuery();
-
-                if (resultset.next())
-                {
-                    i = resultset.getInt("id");
-                }
-            }
-            catch (Exception exception)
-            {
-                exception.printStackTrace();
-            }
-
-            SingleChat singlechat = new SingleChat(i, friend, new ArrayList());
+            SingleChat singlechat = new SingleChat(this.chats.size(), friend, new ArrayList());
             this.chats.add(singlechat);
             return singlechat;
         }
-    }
-
-    public List<MessageChatComponent> loadChatlog(int single_chat_id) throws SQLException
-    {
-        List<MessageChatComponent> list = new ArrayList();
-        ResultSet resultset = this.connection.prepareStatement("SELECT * FROM single_chat_messages WHERE single_chats_id=" + single_chat_id + " ORDER BY sent_time DESC LIMIT 100").executeQuery();
-
-        while (resultset.next())
-        {
-            if (resultset.getString("sender_message").startsWith("<title>") && resultset.getString("sender_message").endsWith("</title>"))
-            {
-                TitleChatComponent titlechatcomponent = new TitleChatComponent(resultset.getString("sender"), resultset.getLong("sent_time"), resultset.getString("sender_message").replace("<title>", "").replace("</title>", ""));
-                list.add(titlechatcomponent);
-            }
-            else
-            {
-                MessageChatComponent messagechatcomponent = new MessageChatComponent(resultset.getString("sender"), resultset.getLong("sent_time"), resultset.getString("sender_message"));
-                list.add(messagechatcomponent);
-            }
-        }
-
-        return list;
     }
 
     static void addNewMessageInfo(String sender)
@@ -449,7 +265,7 @@ public class ChatHandler
             {
                 LabyMod.getInstance().gameMode = lobby;
                 LabyMod.getInstance().client.getClientConnection().sendPacket(new PacketPlayServerStatus(LabyMod.getInstance().ip, LabyMod.getInstance().port, LabyMod.getInstance().gameMode));
-                LabyMod.getInstance().gommeHDAutoJoin = false;
+                GommeHDSign.autoJoin = false;
             }
         }
 
@@ -462,9 +278,6 @@ public class ChatHandler
     public void newAccount()
     {
         this.chats.clear();
-        this.shutdown();
-        this.initConnection();
-        this.initDatabase();
     }
 
     public static void resetTyping()

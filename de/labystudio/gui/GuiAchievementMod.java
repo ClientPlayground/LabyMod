@@ -3,7 +3,6 @@ package de.labystudio.gui;
 import de.labystudio.chat.EnumAlertType;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import de.labystudio.utils.ModGui;
 import java.util.ArrayList;
 import net.minecraft.client.Minecraft;
@@ -108,7 +107,6 @@ public class GuiAchievementMod extends Gui
     public void updateAchievementWindow()
     {
         int i = 0;
-        Timings.start("UpdateAchievementWindow");
 
         for (int j = this.time.size() - 1; j > 0; --j)
         {
@@ -184,8 +182,6 @@ public class GuiAchievementMod extends Gui
             GlStateManager.disableLighting();
             this.draw(s, s1, i1, l1, j1);
         }
-
-        Timings.stop("UpdateAchievementWindow");
     }
 
     private void draw(String title, String message, int y, int type, int xx)

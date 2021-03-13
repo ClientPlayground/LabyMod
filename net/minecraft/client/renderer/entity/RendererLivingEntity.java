@@ -1,10 +1,9 @@
 package net.minecraft.client.renderer.entity;
 
 import com.google.common.collect.Lists;
-import de.labystudio.gommehd.GommeHDBed;
-import de.labystudio.hologram.Hologram;
-import de.labystudio.hologram.Manager;
-import de.labystudio.hologram.SetColor;
+import de.labystudio.cosmetic.Cosmetic;
+import de.labystudio.cosmetic.CosmeticUser;
+import de.labystudio.cosmetic.EnumCosmetic;
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
 import de.labystudio.modapi.ModAPI;
@@ -24,6 +23,8 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.WorldRenderer;
+import net.minecraft.client.renderer.entity.layers.LayerBipedArmor;
+import net.minecraft.client.renderer.entity.layers.LayerCape;
 import net.minecraft.client.renderer.entity.layers.LayerRenderer;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -31,6 +32,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EnumPlayerModelParts;
+import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.util.EnumChatFormatting;
@@ -212,8 +214,6 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
         {
             super.doRender(entity, x, y, z, entityYaw, partialTicks);
         }
-
-        this.renderHolograms();
     }
 
     protected boolean setScoreTeamColor(T entityLivingBaseIn)
@@ -345,7 +345,7 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
 
             if (flag1)
             {
-                if (ConfigManager.settings.oldDMG.booleanValue())
+                if (ConfigManager.settings.oldDMG)
                 {
                     this.brightnessBuffer.put(f);
                     this.brightnessBuffer.put(0.0F);
@@ -490,12 +490,12 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
         {
             boolean flag = layerrenderer.shouldCombineTextures();
 
-            if (ConfigManager.settings.oldDMG.booleanValue() && Allowed.animations() && (layerrenderer.toString().contains("LayerBipedArmor") || layerrenderer.toString().startsWith("bkx@")))
+            if (ConfigManager.settings.oldDMG && Allowed.animations() && layerrenderer instanceof LayerBipedArmor)
             {
                 flag = true;
             }
 
-            if (LeftHand.use((Entity)entitylivingbaseIn) && (layerrenderer.toString().contains("LayerCape") || layerrenderer.toString().startsWith("bkp@")))
+            if (LeftHand.use((Entity)entitylivingbaseIn) && layerrenderer instanceof LayerCape)
             {
                 GlStateManager.scale(-1.0F, 1.0F, 1.0F);
             }
@@ -533,8 +533,6 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
 
     public void renderName(T entity, double x, double y, double z)
     {
-        GommeHDBed.renderPlayerTag(entity, x, y, z);
-
         if (ModAPI.enabled())
         {
             ModAPI.callEvent(new RenderNametagEvent(entity, x, y, z));
@@ -565,7 +563,8 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
                         s3 = s2.substring(0, 2);
                     }
 
-                    s = Color.cl("e") + "\u270e " + Color.cl("f") + s3 + s;
+                    char c0 = 9998;
+                    s = Color.cl("e") + c0 + " " + Color.cl("f") + s3 + s;
                 }
 
                 if (entity.isSneaking())
@@ -634,65 +633,82 @@ public abstract class RendererLivingEntity<T extends EntityLivingBase> extends R
                 }
                 else
                 {
-                    this.renderOffsetLivingLabel(entity, x, y - (entity.isChild() ? (double)(entity.height / 2.0F) : 0.0D) + LabyMod.getInstance().getCosmeticManager().getNameTagHeight(entity), z, s, 0.02666667F, d0);
+                    double d2 = LabyMod.getInstance().getCosmeticManager().getNameTagHeight(entity);
+                    this.renderOffsetLivingLabel(entity, x, y - (entity.isChild() ? (double)(entity.height / 2.0F) : 0.0D) + d2, z, s, 0.02666667F, d0);
+                    CosmeticUser cosmeticuser = LabyMod.getInstance().getCosmeticManager().getCosmeticUser(entity);
+
+                    if (cosmeticuser != null)
+                    {
+                        Cosmetic cosmetic = (Cosmetic)cosmeticuser.getCosmeticHashMap().get(EnumCosmetic.RANK);
+
+                        if (cosmetic != null)
+                        {
+                            double d1 = 0.3D;
+
+                            if (Minecraft.getMinecraft().theWorld != null && Minecraft.getMinecraft().theWorld.getScoreboard() != null)
+                            {
+                                ScoreObjective scoreobjective = Minecraft.getMinecraft().theWorld.getScoreboard().getObjectiveInDisplaySlot(2);
+
+                                if (scoreobjective != null)
+                                {
+                                    d1 += 0.25D;
+                                }
+                            }
+
+                            this.renderLivingLabelCustom(entity, cosmetic.d.replace("&", Color.c), x, y - (entity.isChild() ? (double)(entity.height / 2.0F) : 0.0D) + d2 + d1, z, 10);
+                        }
+                    }
                 }
             }
         }
     }
 
-    private void renderHolograms()
+    protected void renderLivingLabelCustom(T p_renderLivingLabelCustom_1_, String p_renderLivingLabelCustom_2_, double p_renderLivingLabelCustom_3_, double p_renderLivingLabelCustom_5_, double p_renderLivingLabelCustom_7_, int p_renderLivingLabelCustom_9_)
     {
-        try
+        double d0 = p_renderLivingLabelCustom_1_.getDistanceSqToEntity(this.renderManager.livingPlayer);
+
+        if (d0 <= (double)(p_renderLivingLabelCustom_9_ * p_renderLivingLabelCustom_9_))
         {
-            for (Hologram hologram : Manager.getHolograms())
+            FontRenderer fontrenderer = this.getFontRendererFromRenderManager();
+            float f = 1.6F;
+            float f1 = 0.016666668F * f;
+            GlStateManager.pushMatrix();
+            GlStateManager.translate((float)p_renderLivingLabelCustom_3_ + 0.0F, (float)p_renderLivingLabelCustom_5_ + p_renderLivingLabelCustom_1_.height + 0.5F, (float)p_renderLivingLabelCustom_7_);
+            GL11.glNormal3f(0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(-this.renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(this.renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+            GlStateManager.scale(-f1, -f1, f1);
+            GlStateManager.disableLighting();
+            GlStateManager.depthMask(false);
+            GlStateManager.disableDepth();
+            GlStateManager.enableBlend();
+            GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
+            Tessellator tessellator = Tessellator.getInstance();
+            WorldRenderer worldrenderer = tessellator.getWorldRenderer();
+            int i = 0;
+
+            if (p_renderLivingLabelCustom_2_.equals("deadmau5"))
             {
-                double d0 = (double)hologram.getX();
-                double d1 = (double)hologram.getY();
-                double d2 = (double)hologram.getZ();
-
-                if (!LabyMod.getInstance().isInGame() || this.renderManager == null)
-                {
-                    return;
-                }
-
-                d0 = d0 - this.renderManager.viewerPosX;
-                d1 = d1 - this.renderManager.viewerPosY;
-                d2 = d2 - this.renderManager.viewerPosZ;
-                FontRenderer fontrenderer = this.getFontRendererFromRenderManager();
-                GlStateManager.pushMatrix();
-                GlStateManager.translate((float)d0, (float)d1, (float)d2);
-                GL11.glNormal3f(0.0F, 1.0F, 0.0F);
-                GlStateManager.rotate(-this.renderManager.playerViewY, 0.0F, 1.0F, 0.0F);
-                GlStateManager.rotate(this.renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-                GlStateManager.scale(-0.32666668F, -0.32666668F, 0.32666668F);
-                GlStateManager.disableLighting();
-                GlStateManager.depthMask(false);
-                GlStateManager.enableBlend();
-                GlStateManager.disableTexture2D();
-                GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0);
-                int i = fontrenderer.getStringWidth(hologram.getText()) / 2;
-                Tessellator tessellator = Tessellator.getInstance();
-                WorldRenderer worldrenderer = tessellator.getWorldRenderer();
-                worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-                SetColor setcolor = hologram.getColor();
-                worldrenderer.pos((double)(-i - 1), -1.0D, 0.0D).color(setcolor.getR(), setcolor.getG(), setcolor.getB(), setcolor.getA()).endVertex();
-                worldrenderer.pos((double)(-i - 1), 8.0D, 0.0D).color(setcolor.getR(), setcolor.getG(), setcolor.getB(), setcolor.getA()).endVertex();
-                worldrenderer.pos((double)(i + 1), 8.0D, 0.0D).color(setcolor.getR(), setcolor.getG(), setcolor.getB(), setcolor.getA()).endVertex();
-                worldrenderer.pos((double)(i + 1), -1.0D, 0.0D).color(setcolor.getR(), setcolor.getG(), setcolor.getB(), setcolor.getA()).endVertex();
-                tessellator.draw();
-                GlStateManager.enableTexture2D();
-                GlStateManager.depthMask(true);
-                GlStateManager.enableDepth();
-                fontrenderer.drawString(hologram.getText(), -fontrenderer.getStringWidth(hologram.getText()) / 2, 0, -1);
-                GlStateManager.enableLighting();
-                GlStateManager.disableBlend();
-                GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-                GlStateManager.popMatrix();
+                i = -10;
             }
-        }
-        catch (Exception var14)
-        {
-            ;
+
+            int j = fontrenderer.getStringWidth(p_renderLivingLabelCustom_2_) / 2;
+            GlStateManager.disableTexture2D();
+            worldrenderer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+            worldrenderer.pos((double)(-j - 1), (double)(-1 + i), 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
+            worldrenderer.pos((double)(-j - 1), (double)(8 + i), 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
+            worldrenderer.pos((double)(j + 1), (double)(8 + i), 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
+            worldrenderer.pos((double)(j + 1), (double)(-1 + i), 0.0D).color(0.0F, 0.0F, 0.0F, 0.25F).endVertex();
+            tessellator.draw();
+            GlStateManager.enableTexture2D();
+            fontrenderer.drawString(p_renderLivingLabelCustom_2_, -fontrenderer.getStringWidth(p_renderLivingLabelCustom_2_) / 2, i, 553648127);
+            GlStateManager.enableDepth();
+            GlStateManager.depthMask(true);
+            fontrenderer.drawString(p_renderLivingLabelCustom_2_, -fontrenderer.getStringWidth(p_renderLivingLabelCustom_2_) / 2, i, -1);
+            GlStateManager.enableLighting();
+            GlStateManager.disableBlend();
+            GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.popMatrix();
         }
     }
 

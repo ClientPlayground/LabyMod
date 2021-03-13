@@ -2,14 +2,12 @@ package de.labystudio.chat;
 
 import de.labystudio.labymod.ConfigManager;
 import de.labystudio.labymod.LabyMod;
-import de.labystudio.labymod.Timings;
 import de.labystudio.packets.EnumConnectionState;
 import de.labystudio.packets.PacketDisconnect;
 import de.labystudio.packets.PacketLoginOptions;
 import de.labystudio.packets.PacketPlayChangeOptions;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
@@ -55,7 +53,6 @@ public class Client implements Runnable
 
     public void init()
     {
-        Timings.start("Client Init");
         this.clientConnection.init();
         this.running = true;
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
@@ -68,7 +65,6 @@ public class Client implements Runnable
                 }
             }
         }));
-        Timings.stop("Client Init");
     }
 
     public void run()
@@ -177,31 +173,6 @@ public class Client implements Runnable
         this.requests.clear();
         this.reconnect();
         ChatHandler.getHandler().newAccount();
-    }
-
-    public void setNotifecationStatus(final LabyModPlayer selectedPlayer, final boolean b)
-    {
-        for (LabyModPlayer labymodplayer : this.getFriends())
-        {
-            if (labymodplayer.getId().equals(selectedPlayer.getId()) && b != labymodplayer.isNotify())
-            {
-                labymodplayer.setNotify(b);
-                ClientConnection.executor.execute(new Runnable()
-                {
-                    public void run()
-                    {
-                        try
-                        {
-                            ChatHandler.getHandler().getConnection().prepareStatement("UPDATE friends SET showAlerts=" + b + " WHERE friend_id=\'" + selectedPlayer.getId().toString() + "\'").executeUpdate();
-                        }
-                        catch (SQLException sqlexception)
-                        {
-                            sqlexception.printStackTrace();
-                        }
-                    }
-                });
-            }
-        }
     }
 
     public boolean hasNotifications(LabyModPlayer friend)
