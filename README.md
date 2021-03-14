@@ -4,4 +4,4 @@
 ## Disclaimer
 This repo is for educational purposes only!
 
-The purpose of is repo is to learn more Java and client dev, and how the professionals code.
+The purpose of this repo is to learn more Java and client dev, and how the professionals code.
